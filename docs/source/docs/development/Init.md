@@ -23,7 +23,12 @@
 ```bash
 git clone https://github.com/WeBankBlockchain/OpenLedger
 ```
+#### 4. 编译源码
 
+项目目录执行:
+```bash
+gradle  -x test  shadowJar
+```
 ### 创建项目
 
 #### 1.创建一个Gradle应用
