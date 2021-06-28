@@ -300,7 +300,7 @@ OpenLedger-demo>openAccount 0x70b3d4ee132159d4ba7029bce866b4131f3658d2
 
 
 
-#### 登记资产数量变化账户
+#### 余额数量变化账目管理
 
 ##### 登记资产存入账目
 

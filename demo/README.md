@@ -362,7 +362,7 @@ withdrawal successfully! transaction result:TransferResult{isSuccees=true, termN
 - `termNo`:  账期
 - `seqNo`: 交易序列号
 
-##### 登记资产数量转移账目
+#### 余额数量变化账目管理
 
 账户仅有操作自己资产余额的权限。
 
