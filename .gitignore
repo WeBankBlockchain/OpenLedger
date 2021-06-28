@@ -1,0 +1,36 @@
+### gradle
+.gradle
+gradle.properties
+!gradle/wrapper/gradle-wrapper.jar
+
+### java project
+logs/
+build/
+out/
+dist/
+
+### npm build
+node_modules/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+
+.history/*

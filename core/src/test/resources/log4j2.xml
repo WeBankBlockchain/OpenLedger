@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014 - 2021  www.webank.com All Rights Reserved.
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<Configuration status="info">
+    <Properties>
+        <Property name="logPath">./logs</Property>
+    </Properties>
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%-d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%pid-%tid %t] [%F:%L %M] %m%n"/>
+        </Console>
+
+        <RollingRandomAccessFile name="fileAppender"
+                                 fileName="${logPath}/openledger-core.log"
+                                 filePattern="${logPath}/weleder.log.%d{yyyy-MM-dd}.%i.log.gz">
+            <PatternLayout pattern="%-d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%pid-%tid %t] [%F:%L %M] %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="24"/>
+        </RollingRandomAccessFile>
+    </Appenders>
+
+    <Loggers>
+        <root level="info" includeLocation="true">
+            <appender-ref ref="fileAppender"/>
+            <appender-ref ref="console"/>
+        </root>
+    </Loggers>
+</Configuration>
