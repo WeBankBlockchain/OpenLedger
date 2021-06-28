@@ -31,7 +31,7 @@ WeBankBlockchain-OpenLedger(以下简称OpenLedger)是一套聚焦链上的“�
 | Git        | 下载的安装包使用Git                                          |      |
 
 ## 文档
-- [**开发手册**](https://openledger.readthedocs.io/en/latest)
+- [**开发手册**](https://openledger.readthedocs.io/zh_CN/latest/)
 
 ## 贡献代码
 欢迎参与本项目的社区建设：
