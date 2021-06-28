@@ -14,6 +14,8 @@ WebankBlockchian-OpenLedger技术文档
    docs/demo/index
    docs/development/index
    docs/api/index
-   微众银行区块链开源生态<https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/community.html target="_blank">
+   |location_link|.
+   .. |location_link| raw:: html
+   <a href="https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/community.html" target="_blank">微众银行区块链开源生态 </a>
 =======
 
