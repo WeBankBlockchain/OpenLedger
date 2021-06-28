@@ -18,9 +18,17 @@
 
 请参考[FISCO BCOS安装](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/installation.html)搭建。
 
+#### 3. 下载源码
+
+```bash
+git clone https://github.com/WeBankBlockchain/OpenLedger
+```
+
 ### 创建项目
 
 #### 1.创建一个Gradle应用
+
+编译包地址：`deploy/openledger-core-1.0.0-all.jar`
 
 项目目录结构：
 
