@@ -110,6 +110,7 @@ latex_elements = {
     # 'printindex': r'\footnotesize\raggedright\printindex',
 }
 
+# solution found at https://stackoverflow.com/questions/25583581/add-open-in-new-tab-links-in-sphinx-restructuredtext
 from sphinx.writers.html import HTMLTranslator
 from docutils import nodes
 from docutils.nodes import Element
