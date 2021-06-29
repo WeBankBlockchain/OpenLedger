@@ -9,7 +9,7 @@ contract Term {
     Sequence seq;
     uint current; //currentTermNo
     string name;
-    uint startSeq; theStartingSerialNumberOfTheCurrentTerm
+    uint startSeq;
     struct Range {
         string termname;
         uint start;

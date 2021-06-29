@@ -241,8 +241,9 @@ contract NonFungibleAsset is Identity {
             resultLength = end;
         }
         noteNos = new uint256[](resultLength <= 0 ? 0 : resultLength - start);
+        uint j=0;
         for (uint i = start; i < resultLength; i++) {
-            noteNos[i] = notes[noteIds[i]].noteNo;
+            noteNos[j++] = notes[noteIds[i]].noteNo;
         }
         return noteNos;
     }
