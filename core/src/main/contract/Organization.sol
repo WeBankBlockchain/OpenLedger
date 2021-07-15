@@ -20,6 +20,7 @@ import "./interface/IAssetManager.sol";
 import "./interface/IProject.sol";
 import "./interface/ICurrencyManager.sol";
 import "./interface/IAssetPoolManager.sol";
+import "./interface/INonFungibleManager.sol";
 
 
 contract Organization is Constant, Identity
@@ -41,7 +42,7 @@ contract Organization is Constant, Identity
     address[] assetPoolAddressList;
     //assetsManagement
     IAssetManager assetManager;
-    IAssetManager nonFungibleAssetManager;
+    INonFungibleManager nonFungibleAssetManager;
 
 
 
@@ -71,7 +72,7 @@ contract Organization is Constant, Identity
     constructor(address projectAddress, address authCenterAddress) public Identity(authCenterAddress, address(0x0)) {
         project = projectAddress;
         assetManager = IAssetManager(IProject(project).getFingibleAssetManager());
-        nonFungibleAssetManager = IAssetManager(IProject(project).getNonFingibleAssetManager());
+        nonFungibleAssetManager = INonFungibleManager(IProject(project).getNonFingibleAssetManager());
     }
 
     //account manager
@@ -275,6 +276,7 @@ contract Organization is Constant, Identity
     function createAssetWithSign(address externalAccount, string assetName, bool isFungible, bytes32[4] sign) public returns (address, bool){
         address assetAddress;
         bool isCreate;
+        address storageAddress;
 
         if (isFungible) {
             (isCreate, assetAddress) = assetManager.createAssetWithSign(externalAccount, assetName, sign, address(authCenter), address(this));
@@ -292,6 +294,19 @@ contract Organization is Constant, Identity
 
         IProject(project).syncAddAsset(assetAddress, address(this), isFungible);
         return (assetAddress, true);
+    }
+
+    function upgradeAsset(address externalAccount,string assetName, bool isFungible, bytes32[4] sign) public returns (address, bool){
+        require(!isFungible, "upgrade not support fungibleAsset");
+        address assetAddress;
+        bool isUpgrade;
+        address storageAddress;
+        (isUpgrade, assetAddress) = nonFungibleAssetManager.upgradeAsset(externalAccount, assetName, sign);
+        return (assetAddress, true);
+    }
+
+    function listAssetVersion(string assetName) public view returns (uint256[], address[]){
+        return nonFungibleAssetManager.listAssetVersion(assetName);
     }
 
     function getAllAssets(bool isFungible) public view returns (address[]) {
@@ -352,14 +367,14 @@ contract Organization is Constant, Identity
         return assetAddress;
     }
 
-    function createAssetPool() public onlyOrgAdminOrSuper returns(address){
+    function createAssetPool() public onlyOrgAdminOrSuper returns (address){
         address assetPool = IAssetPoolManager(IProject((project)).getAssetPoolManager()).createAssetPool(address(authCenter), address(this));
         require(address(0) != assetPool, "create assetPool fail");
         assetPoolAddressList.push(assetPool);
         return assetPool;
     }
 
-    function getAssetPools() public  onlyOrgAdminOrSuper returns(address[]){
+    function getAssetPools() public onlyOrgAdminOrSuper returns (address[]){
         return assetPoolAddressList;
     }
 

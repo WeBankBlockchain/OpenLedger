@@ -204,6 +204,21 @@ public class OrganizationService<T extends Contract> {
     }
 
     /**
+     * update asset of organzation
+     * @param externalAccount operator account address
+     * @param assetName asset's name custom defined
+     * @param isFungible boolean is fungible
+     * @param message args hash
+     * @param rs sign by orgAdmin
+     * @return asset address
+     */
+    public ResponseData<String> upgradeAsset(String externalAccount, String assetName, Boolean isFungible, byte[] message, ECDSASignatureResult rs) {
+        TransactionReceipt transactionReceipt = contractIns.upgradeAsset(externalAccount, assetName, isFungible, OpenLedgerUtils.convertSignToByte(message, rs));
+        String result = transactionReceipt.isStatusOK() ? contractIns.getUpgradeAssetOutput(transactionReceipt).getValue1() : null;
+        ResponseData<String> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
+        return responseData;
+    }
+    /**
      * create currency of project
      *
      * @param name currency's name custom defined

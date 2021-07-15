@@ -31,15 +31,14 @@ import com.webank.openledger.core.Blockchain;
 import com.webank.openledger.core.asset.nonfungible.entity.IssueNoteResult;
 import com.webank.openledger.core.asset.nonfungible.entity.IssueOption;
 import com.webank.openledger.core.asset.nonfungible.entity.IssueOptionBuilder;
-import com.webank.openledger.core.asset.nonfungible.entity.NonFungibleCondition;
 import com.webank.openledger.core.asset.nonfungible.entity.NonFungibleAssetRecord;
+import com.webank.openledger.core.asset.nonfungible.entity.NonFungibleCondition;
 import com.webank.openledger.core.asset.nonfungible.entity.Note;
 import com.webank.openledger.core.asset.nonfungible.entity.TransferNoteResult;
 import com.webank.openledger.core.auth.AuthCenterService;
 import com.webank.openledger.core.common.ValueModel;
 import com.webank.openledger.core.constant.ErrorCode;
 import com.webank.openledger.core.exception.OpenLedgerBaseException;
-
 import com.webank.openledger.core.response.DataToolUtils;
 import com.webank.openledger.core.response.ResponseData;
 import com.webank.openledger.utils.OpenLedgerUtils;
@@ -103,22 +102,6 @@ public class NonFungibleAssetServiceTest {
         }
     }
 
-
-    @Test
-    public void deploy() {
-        NonFungibleAsset asset = null;
-        String tableName = "test1098";
-        BigInteger price = BigInteger.valueOf(100);
-        try {
-            asset = NonFungibleAsset.deploy(blockchain.getClient(Blockchain.DEFAULT_LEDGERID), blockchain.getProjectAccount().getKeyPair(), tableName, AUTH_ADDRESS, ORG_ADDRESS);
-            contractAddress = asset.getContractAddress();
-            log.info(DataToolUtils.decodeOutputReturnString0x16(asset.getDeployReceipt().getOutput()));
-            log.info(contractAddress);
-        } catch (ContractException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Test
     public void getAssetInfo() throws OpenLedgerBaseException, ContractException {
         BigInteger assetPrice = BigInteger.valueOf(100);
@@ -128,8 +111,6 @@ public class NonFungibleAssetServiceTest {
         ResponseData<BigInteger> responseRPriceData = nonFungibleAssetService.setPrice(assetPrice, messagePrice, OpenLedgerUtils.sign(admin, messagePrice));
         log.info(responseRPriceData.getErrMsg());
         assertEquals(ErrorCode.SUCCESS.getCode(), responseRPriceData.getErrorCode().intValue());
-
-        assertEquals(assetPrice, nonFungibleAssetService.getAsset().price());
     }
 
     @Test

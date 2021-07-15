@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
 import com.webank.openledger.contracts.AssetPool;
 import com.webank.openledger.contracts.AssetPoolManager;
 import com.webank.openledger.contracts.AuthCenter;
@@ -36,6 +35,7 @@ import com.webank.openledger.contracts.Currency;
 import com.webank.openledger.contracts.CurrencyManager;
 import com.webank.openledger.contracts.FungibleAsset;
 import com.webank.openledger.contracts.FungibleAssetManager;
+import com.webank.openledger.contracts.NonFunStorageManager;
 import com.webank.openledger.contracts.NonFungibleAsset;
 import com.webank.openledger.contracts.NonFungibleAssetManager;
 import com.webank.openledger.contracts.Project;
@@ -58,7 +58,6 @@ import org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple2;
 import org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple3;
 import org.fisco.bcos.sdk.contract.Contract;
 import org.fisco.bcos.sdk.model.TransactionReceipt;
-import org.fisco.bcos.sdk.transaction.model.exception.ContractException;
 
 /**
  * Porject Service
@@ -157,6 +156,15 @@ public class ProjectService<T extends Contract> {
             NonFungibleAssetManager nonFungibleAssetManager = NonFungibleAssetManager.deploy(blockchain.getDefaultClient(), blockchain.getProjectAccount().getKeyPair());
             projectManager.setNonFungibleAssetManagerAddr(nonFungibleAssetManager.getContractAddress());
 
+            NonFunStorageManager nonFunStorageManager = NonFunStorageManager.deploy(blockchain.getDefaultClient(), blockchain.getProjectAccount().getKeyPair(), nonFungibleAssetManager.getContractAddress());
+           projectManager.setNonFungibleAssetStorage(nonFunStorageManager.getContractAddress());
+
+            TransactionReceipt transactionReceipt = nonFungibleAssetManager.setStorageManager(nonFunStorageManager.getContractAddress());
+            log.info("NonFunStorageManager:{}", nonFunStorageManager.getContractAddress());
+            if (!transactionReceipt.isStatusOK()) {
+                throw new Exception("set storage fail!");
+            }
+
             CurrencyManager currencyManager = CurrencyManager.deploy(blockchain.getDefaultClient(), blockchain.getProjectAccount().getKeyPair());
             projectManager.setCurrencyManagerAddr(currencyManager.getContractAddress());
 
@@ -174,7 +182,7 @@ public class ProjectService<T extends Contract> {
             projectManager.setProjectAddr(projectAddr);
             return new ResponseData<>(projectManager.getResult(), ErrorCode.SUCCESS);
 
-        } catch (ContractException e) {
+        } catch (Exception e) {
             log.error("createProject deploy contract error:{} ", e.toString());
             return new ResponseData<>(null, ErrorCode.PROJECT_DEPLOY_ERROR);
         }
@@ -233,6 +241,7 @@ public class ProjectService<T extends Contract> {
 
     /**
      * call contract function to add keytypes
+     *
      * @param authCenterAddr auth center contract address
      * @return
      */
@@ -261,6 +270,7 @@ public class ProjectService<T extends Contract> {
 
     /**
      * create account and add this account as admin to organzation
+     *
      * @param org org contract address
      * @param externalAccount account external address
      * @param keyList account property keys
@@ -280,6 +290,7 @@ public class ProjectService<T extends Contract> {
     /**
      * add organzation's admin
      * requried account has been create in organzation
+     *
      * @param org org contract address
      * @param externalAccount account external address
      * @return
@@ -293,6 +304,7 @@ public class ProjectService<T extends Contract> {
 
     /**
      * whether account has been exist in this project
+     *
      * @param externalAccount account  external address
      * @return boolean is exist
      */
@@ -305,6 +317,7 @@ public class ProjectService<T extends Contract> {
 
     /**
      * get orgs of project
+     *
      * @return
      */
     public ResponseData<List<String>> getAllOrg() {
@@ -320,6 +333,7 @@ public class ProjectService<T extends Contract> {
 
     /**
      * get assets of project
+     *
      * @param isFungible boolean is fungible
      * @return
      */
@@ -346,6 +360,7 @@ public class ProjectService<T extends Contract> {
 
     /**
      * Gets a collection of all method names for an asset through a reflection class method
+     *
      * @return
      */
     private Set<String> getAllAssetFunc() {
@@ -371,7 +386,8 @@ public class ProjectService<T extends Contract> {
     }
 
     /**
-     *  Gets the administrator permission set through reflection.
+     * Gets the administrator permission set through reflection.
+     *
      * @return
      */
     private Set<String> getAllAdminFunc() {

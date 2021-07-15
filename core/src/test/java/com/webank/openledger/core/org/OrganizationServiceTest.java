@@ -271,4 +271,21 @@ public class OrganizationServiceTest {
         log.info(responseData.getResult());
 
     }
+
+    @Test
+    public void testUpgradeAsset() {
+        String assetName = "test20210531112";
+        Boolean isFungible = false;
+        BigInteger nonce = authCenterService.getNonceFromAccount(admin.getAddress()).getResult();
+        log.info("testUpgradeAsset, get nonce:{}", nonce.intValue());
+
+        byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(admin.getAddress()),
+                OpenLedgerUtils.getBytes32(nonce.toByteArray()));
+        byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
+
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(admin, message);
+
+        ResponseData<String> ret = this.orgService.upgradeAsset(admin.getAddress(), assetName, isFungible, message, sign);
+        log.info("testCreateAsset ret:{}, {}", ret.getResult(), ret);
+    }
 }

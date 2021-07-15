@@ -62,6 +62,10 @@ public class ProjectManager {
      * assetpool manager contract address
      */
     private String assetPoolManagerAddr;
+    /**
+     * nonFungibleAssetStorage
+     */
+    private String nonFungibleAssetStorage;
 
     /**
      * generate address list
@@ -75,6 +79,7 @@ public class ProjectManager {
         managers.add(nonFungibleAssetManagerAddr);
         managers.add(currencyManagerAddr);
         managers.add(assetPoolManagerAddr);
+        managers.add(nonFungibleAssetStorage);
         return managers;
     }
 
