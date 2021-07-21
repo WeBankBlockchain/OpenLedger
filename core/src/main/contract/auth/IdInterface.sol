@@ -20,13 +20,10 @@ contract IdInterface {
 
     function revoke(address resource, address allowId, string operation, string detail, bytes32[4] sign) public returns (bool);
 
-    function check(address resource, address allowId, string operation, string detail, bytes args, bytes32[4] sign) public returns (bool);
-
-    function check(address roleAddress, address resourceGroup, address allowId, bytes args, bytes32[4] sign) public returns (bool);
+    function check(address[] addressList, string[] stringList, bytes args, bytes32[4] sign) public view returns (bool);
 
     function setExternalAddress(address _external) public;
 
     function getNonce() public view returns (uint256);
-
 
 }

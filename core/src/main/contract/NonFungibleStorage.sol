@@ -17,7 +17,7 @@ contract NonFungibleStorage {
         _;
     }
     modifier onlyUpgrade(string assetName) {
-        require(assetManager.checkUpgrade(assetName), "storage has been init");
+        require(assetManager.checkUpgrade(assetName), "upgrade not verify");
         _;
     }
     uint8 constant INIT_STATUS = 1;
