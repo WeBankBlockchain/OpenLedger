@@ -1,7 +1,7 @@
 pragma solidity ^0.4.25;
 pragma experimental ABIEncoderV2;
 
-import "./IAclManager.sol";
+import "./interface/IAclManager.sol";
 import "./ResourceGroup.sol";
 import "./Role.sol";
 import "./storage/AddressSetLib.sol";
@@ -9,7 +9,7 @@ import "./storage/AddressMapLib.sol";
 import "./lib/LibSafeMath.sol";
 import "./lib/SignLib.sol";
 import "./lib/UtilLib.sol";
-import "./IResource.sol";
+import "./interface/IResource.sol";
 /**
    Identity support two ways to set permissions:
    - 1.Base on role and resourceGroup
@@ -45,6 +45,7 @@ contract Identity {
     }
     modifier checkHolder(address resource){
         require(IResource(resource).isHolder(address(this)),"Identity:id is not the resource's holder");
+        _;
     }
 
     IAclManager aclManager;
@@ -103,7 +104,7 @@ contract Identity {
         return true;
     }
 
-    function addResGroupToRole(address role, address resourceGroup, bytes32[4] sign) public checkSign(sign)checkHolder(resource)  returns (bool){
+    function addResGroupToRole(address role, address resourceGroup, bytes32[4] sign) public checkSign(sign)   returns (bool){
         require(resourceManage.contains(resourceGroup), "resource is not exist!");
         require(rolesManage.contains(role), "role is not exist!");
         roleResource.insert(role, resourceGroup);
