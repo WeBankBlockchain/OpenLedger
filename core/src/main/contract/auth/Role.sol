@@ -25,7 +25,7 @@ contract Role {
         require(accMap[account], "Role:account has not been added");
         bool isIndex;
         address[] memory newAccounts=new address[](accounts.length - 1);
-        for (uint i = 0; i < accounts.length; i++) {
+        for (uint i = 0; i < accounts.length-1; i++) {
             if (!isIndex&&accounts[i] == account) {
                 isIndex = true;
             }

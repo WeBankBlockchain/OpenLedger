@@ -1,4 +1,5 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.25;
+pragma experimental ABIEncoderV2;
 
 import "./AuthTable.sol";
 
@@ -9,7 +10,7 @@ contract AclManager {
     }
 
     function grant(address resource, address allowId, string operation) public returns (bool) {
-        string detail;
+        string memory detail="";
         return authTable.grant(msg.sender, resource, allowId, operation, detail);
     }
 
@@ -19,7 +20,7 @@ contract AclManager {
 
 
     function check(address resource, address allowId, string operation) public returns (bool) {
-        string detail;
+        string memory detail="";
         return authTable.check(msg.sender, resource, allowId, operation, detail);
     }
 
@@ -28,12 +29,11 @@ contract AclManager {
     }
 
     function revoke(address resource, address allowId, string operation) public returns (bool) {
-        string detail;
+        string memory detail="";
         return authTable.revoke(msg.sender, resource, allowId, operation, detail);
     }
 
     function revoke(address resource, address allowId, string operation, string detail) public returns (bool) {
         return authTable.revoke(msg.sender, resource, allowId, operation, detail);
-
     }
 }
