@@ -17,7 +17,7 @@ package com.webank.openledger.core.identity;
 
 import java.math.BigInteger;
 
-import com.webank.openledger.contracts.Identity;
+import com.webank.openledger.contractsbak.Identity;
 import com.webank.openledger.core.Blockchain;
 import com.webank.openledger.core.common.BaseIdentity;
 import com.webank.openledger.core.common.ValueModel;

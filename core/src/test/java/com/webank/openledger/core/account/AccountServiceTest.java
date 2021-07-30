@@ -16,14 +16,12 @@
 package com.webank.openledger.core.account;
 
 import java.math.BigInteger;
-import java.util.HashMap;
+import java.util.List;
 
-import com.webank.openledger.contracts.Account;
 import com.webank.openledger.core.AccountImplTest;
 import com.webank.openledger.core.Blockchain;
 import com.webank.openledger.core.auth.AuthCenterService;
 import com.webank.openledger.core.constant.ErrorCode;
-import com.webank.openledger.core.exception.OpenLedgerBaseException;
 import com.webank.openledger.core.response.ResponseData;
 import com.webank.openledger.utils.OpenLedgerUtils;
 
@@ -32,7 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.fisco.bcos.sdk.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.crypto.keypair.CryptoKeyPair;
 import org.fisco.bcos.sdk.model.CryptoType;
-import org.fisco.bcos.sdk.transaction.model.exception.ContractException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,6 +44,7 @@ public class AccountServiceTest {
     CryptoKeyPair admin;
     private AuthCenterService authCenterService;
     private String contractAddress = "0xb273c2a754638feedeb1689a15babaac12471e98";
+    private String assetAddress = "0xb273c2a754638feedeb1689a15babaac12471e98";
 
     @Before
     public void init() {
@@ -58,18 +56,10 @@ public class AccountServiceTest {
         admin = ecdsaCryptoSuite.getCryptoKeyPair();
         log.info(admin.getAddress());
         if (StringUtils.isNotBlank(contractAddress)) {
-            this.accountService = new AccountService(blockchain, contractAddress);
+            this.accountService = new AccountService(blockchain, contractAddress,assetAddress);
             this.authCenterService = new AuthCenterService<>(blockchain, AUTH_ADDRESS);
 
         }
-    }
-
-    @Test
-    public void deploy() throws OpenLedgerBaseException, ContractException {
-        Account account = Account.deploy(blockchain.getClient(Blockchain.DEFAULT_LEDGERID), blockchain.getProjectAccount().getKeyPair(), AUTH_ADDRESS, ORG_ADDRESS);
-        log.info(account.getDeployReceipt().getMessage());
-        log.info(account.getDeployReceipt().getContractAddress());
-        contractAddress = account.getDeployReceipt().getContractAddress();
     }
 
     @Test
@@ -78,14 +68,11 @@ public class AccountServiceTest {
 //        accountService.contractIns.addAsset("0x7a3bc024c1127cae3c108f1e2bc49e51b067cc57", admin.getAddress(),isFungible);
         BigInteger nonce = (BigInteger) authCenterService.getNonceFromAccount(admin.getAddress()).getResult();
         byte[] message = OpenLedgerUtils.computeKeccak256HashFromBigInteger(nonce);
-        ResponseData<HashMap> responseData = accountService.getAllAssets(isFungible,message, OpenLedgerUtils.sign(admin, message));
+        ResponseData<List> responseData = accountService.getAccountAssets(isFungible,message, OpenLedgerUtils.sign(admin, message));
         log.info(responseData.getErrMsg());
         Assert.assertTrue(ErrorCode.SUCCESS.getCode() == responseData.getErrorCode().intValue());
-        HashMap<String, String> map = responseData.getResult();
-
-        map.entrySet().stream().forEach((entry) -> {
-            System.out.print(entry.getKey());
-            System.out.print(entry.getValue());
-        });
+        List<String> assers= responseData.getResult();
     }
+
+
 }

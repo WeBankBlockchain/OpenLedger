@@ -18,7 +18,7 @@ package com.webank.openledger.core.auth;
 
 import java.util.HashMap;
 
-import com.webank.openledger.contracts.AuthCenter;
+import com.webank.openledger.contractsbak.AuthCenter;
 import com.webank.openledger.core.Blockchain;
 import com.webank.openledger.core.constant.ErrorCode;
 import com.webank.openledger.core.response.ResponseData;

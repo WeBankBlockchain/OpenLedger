@@ -71,6 +71,8 @@ public class IssueOption {
      */
     private String desc;
 
+    private String assetAddress;
+
     public BigInteger getEffectiveDate() {
         if (effectiveDate != null) {
             return BigInteger.valueOf(effectiveDate.getTime());
@@ -86,17 +88,16 @@ public class IssueOption {
     /**
      * Build a list of Address types for issue and trade parameter construction
      *
-     * @param contractAddress The asset contractAddress
      * @return
      * @throws Exception
      */
-    public List<String> genAddressList(String contractAddress) throws Exception {
+    public List<String> genAddressList() throws Exception {
         if (StringUtils.isBlank(issuer) || StringUtils.isBlank(operator) || amount == null || noteNoPrefix == null || noteNoSize == null || expirationDate == null || StringUtils.isBlank(desc)) {
             throw new Exception("issuer,operator,amount,noteNoPrefix,noteNoSize,expirationDate and desc can not be null");
         }
         List<String> transactionAddress = new ArrayList<>();
         transactionAddress.add(this.getOperator());
-        transactionAddress.add(contractAddress);
+        transactionAddress.add(this.getAssetAddress());
         transactionAddress.add(Address.DEFAULT.getValue());
         transactionAddress.add(this.getIssuer());
         return transactionAddress;
@@ -129,12 +130,12 @@ public class IssueOption {
      * @return
      * @throws Exception
      */
-    public List<String> genStringValueList() throws Exception {
+    public List<byte[]> genStringValueList() throws Exception {
         if (StringUtils.isBlank(issuer) || StringUtils.isBlank(operator) || amount == null || noteNoPrefix == null || noteNoSize == null || expirationDate == null || StringUtils.isBlank(desc)) {
             throw new Exception("issuer,operator,amount,noteNoPrefix,noteNoSize,expirationDate and desc can not be null");
         }
-        List<String> stringValList = new ArrayList<>();
-        stringValList.add(this.getDesc());
+        List<byte[]> stringValList = new ArrayList<>();
+        stringValList.add(this.getDesc().getBytes("utf-8"));
         return stringValList;
     }
 }

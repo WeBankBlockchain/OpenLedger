@@ -12,8 +12,9 @@ import "./Constant.sol";
 import "./Term.sol";
 import "./interface/IAssetManager.sol";
 import "./interface/ICurrencyManager.sol";
-import  "./interface/IAssetPoolManager.sol";
-
+import "./interface/IAssetPoolManager.sol";
+import "./interface/INonFungibleManager.sol";
+import "./interface/INonFunStorageManager.sol";
 
 contract Project is Constant {
     using AddressSetLib for AddressSetLib.Set;
@@ -30,9 +31,9 @@ contract Project is Constant {
     IAuthCenter authCenter;
     Term term;
     IAssetManager fungibleAssetManager;
-    IAssetManager nonFungibleAssetManager;
+    INonFungibleManager nonFungibleAssetManager;
     ICurrencyManager currencyManager;
-
+    INonFunStorageManager nonFungibleStorageManager;
     modifier onlyOwner() {
         require(msg.sender == owner, "Project: only owner is authorized.");
         _;
@@ -40,16 +41,17 @@ contract Project is Constant {
 
     // address[]: accountManagerAddress,  authCenterAddress,  assetManager, nonFungibleManager, currencyManagerAddr,assetPoolManager
     constructor (address[] managers) {
-        require(managers.length==6,"param not verify,require managers.length =6");
+        require(managers.length == 7, "param not verify,require managers.length =7");
         owner = msg.sender;
         accountManager = AccountManager(managers[0]);
 
         authCenter = IAuthCenter(managers[1]);
         term = new Term(owner);
         fungibleAssetManager = IAssetManager(managers[2]);
-        nonFungibleAssetManager = IAssetManager(managers[3]);
+        nonFungibleAssetManager = INonFungibleManager(managers[3]);
         currencyManager = ICurrencyManager(managers[4]);
         assetPoolManager = IAssetPoolManager(managers[5]);
+        nonFungibleStorageManager = INonFunStorageManager(managers[6]);
     }
 
     function getOwner() public view returns (address) {
@@ -60,17 +62,17 @@ contract Project is Constant {
         return address(accountManager);
     }
 
-    function getAuthManager() public  view returns (address){
+    function getAuthManager() public view returns (address){
         return address(authCenter.getAuthManager());
     }
 
-    function getAuthCenter() public view  returns (address){
+    function getAuthCenter() public view returns (address){
         return address(authCenter);
     }
 
     function createOrganization() public onlyOwner returns (address){
         Organization organization = new Organization(address(this), address(authCenter));
-        require(address(0)!=address(organization),"create org failed");
+        require(address(0) != address(organization), "create org failed");
         organizationList.insert(organization);
         return organization;
     }
@@ -97,11 +99,11 @@ contract Project is Constant {
     }
 
     //only org admin
-    function syncAddAsset(address asset, address orgAddress,bool isFungible) public returns (bool){
+    function syncAddAsset(address asset, address orgAddress, bool isFungible) public returns (bool){
         require(msg.sender == orgAddress, "msg.sender is not this org");
-        if(isFungible){
+        if (isFungible) {
             fungibleAssetList.insert(asset, orgAddress);
-        }else{
+        } else {
             nonFungibleAssetList.insert(asset, orgAddress);
         }
         return true;
@@ -116,9 +118,9 @@ contract Project is Constant {
     }
 
     function getAllAsset(bool isFungible) public onlyOwner returns (address[] memory, address[] memory, uint retNum) {
-        if(isFungible){
+        if (isFungible) {
             fungibleAssetList.getAll();
-        }else{
+        } else {
             nonFungibleAssetList.getAll();
         }
     }
@@ -138,13 +140,16 @@ contract Project is Constant {
     function getCurrencyManager() public view returns (address){
         return currencyManager;
     }
+
     function setCurrency(address currencyAddr) public returns (bool){
         currency = currencyAddr;
         return true;
     }
+
     function getCurrency() public view returns (address){
         return currency;
     }
+
     function getAssetPoolManager() public view returns (address){
         return assetPoolManager;
     }

@@ -45,7 +45,7 @@ public class ProjectManager {
     /**
      * authcenter contract address
      */
-    private String authCenterAddr;
+    private String aclManagerAddr;
     /**
      * fungibleasser manager contract address
      */
@@ -62,6 +62,10 @@ public class ProjectManager {
      * assetpool manager contract address
      */
     private String assetPoolManagerAddr;
+    /**
+     * nonFungibleAssetStorage
+     */
+    private String nonFungibleAssetStorage;
 
     /**
      * generate address list
@@ -70,11 +74,12 @@ public class ProjectManager {
     public List<String> genAddressList() {
         List<String> managers = new ArrayList<>();
         managers.add(accountManagerAddr);
-        managers.add(authCenterAddr);
+        managers.add(aclManagerAddr);
         managers.add(fungibleAssetManagerAddr);
         managers.add(nonFungibleAssetManagerAddr);
         managers.add(currencyManagerAddr);
         managers.add(assetPoolManagerAddr);
+        managers.add(nonFungibleAssetStorage);
         return managers;
     }
 
@@ -87,7 +92,7 @@ public class ProjectManager {
         managers.add(projectAddr);
         managers.add(accountManagerAddr);
         managers.add(authManagerAddr);
-        managers.add(authCenterAddr);
+        managers.add(aclManagerAddr);
         managers.add(fungibleAssetManagerAddr);
         managers.add(nonFungibleAssetManagerAddr);
         managers.add(currencyManagerAddr);

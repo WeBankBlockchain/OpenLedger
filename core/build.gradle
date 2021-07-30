@@ -32,8 +32,8 @@ plugins {
 apply plugin: 'solc-gradle-plugin'
 
 solc {
-    contracts = 'src/main/contract'
-    pkg = 'com.webank.openledger.contracts2'
+    contracts = 'src/main/contract2'
+    pkg = 'com.webank.openledger.contracts'
 }
 
 repositories {

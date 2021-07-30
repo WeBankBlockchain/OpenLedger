@@ -20,7 +20,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.webank.openledger.contracts.AssetPool;
+import com.webank.openledger.contractsbak.AssetPool;
 import com.webank.openledger.core.Blockchain;
 import com.webank.openledger.core.assetpool.entity.PoolStatus;
 import com.webank.openledger.core.constant.ErrorCode;
