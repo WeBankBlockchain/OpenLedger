@@ -114,7 +114,7 @@ public class AccountHolderService<T extends Contract> {
         List<byte[]> resultSign = OpenLedgerUtils.convertSignToByte(message, rs);
 
         try {
-            List<BigInteger> notes = accountHolder.getAccountNotes(assetAddress,start, end, resultSign);
+            List<BigInteger> notes = accountHolder.getAccountNotes(account,start, end, resultSign);
             return notes;
         } catch (ContractException e) {
             log.error("getAccountNotes failed:{}", e);
