@@ -45,4 +45,3 @@ OpenLedger聚焦链上的“用户、业务方、权益、账户和账本”，�
 ![license](http://img.shields.io/badge/license-Apache%20v2-blue.svg)
 
 开源协议为[Apache License 2.0](http://www.apache.org/licenses/). 详情参考[LICENSE](LICENSE)。
-
