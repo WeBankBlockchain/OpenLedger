@@ -19,7 +19,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.webank.openledger.contracts.Identity;
+import com.webank.openledger.contractsbak.Identity;
 import com.webank.openledger.core.AccountImplTest;
 import com.webank.openledger.core.Blockchain;
 import com.webank.openledger.core.auth.AuthCenterService;

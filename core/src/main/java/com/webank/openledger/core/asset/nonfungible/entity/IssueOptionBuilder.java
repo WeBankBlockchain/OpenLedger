@@ -34,7 +34,7 @@ public final class IssueOptionBuilder {
     private Date effectiveDate;
     private Date expirationDate;
     private String desc;
-
+    private String assetAddress;
     private IssueOptionBuilder() {
     }
 
@@ -42,6 +42,10 @@ public final class IssueOptionBuilder {
         return new IssueOptionBuilder();
     }
 
+    public IssueOptionBuilder withAssetAddress(String assetAddress) {
+        this.assetAddress = assetAddress;
+        return this;
+    }
     public IssueOptionBuilder withIssuer(String issuer) {
         this.issuer = issuer;
         return this;
@@ -95,6 +99,7 @@ public final class IssueOptionBuilder {
         issueOption.setEffectiveDate(effectiveDate);
         issueOption.setExpirationDate(expirationDate);
         issueOption.setDesc(desc);
+        issueOption.setAssetAddress(assetAddress);
         return issueOption;
     }
 }

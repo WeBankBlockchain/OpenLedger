@@ -16,7 +16,7 @@
 package com.webank.openledger.core.govAuth;
 
 
-import com.webank.openledger.contracts.gov_auth.AuthManager;
+import com.webank.openledger.contractsbak.gov_auth.AuthManager;
 import com.webank.openledger.core.Blockchain;
 
 import lombok.Getter;

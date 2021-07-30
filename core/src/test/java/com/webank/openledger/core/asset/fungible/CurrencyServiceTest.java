@@ -20,8 +20,8 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.util.List;
 
-import com.webank.openledger.contracts.AuthCenter;
-import com.webank.openledger.contracts.Currency;
+import com.webank.openledger.contractsbak.AuthCenter;
+import com.webank.openledger.contractsbak.Currency;
 import com.webank.openledger.core.AccountImplTest;
 import com.webank.openledger.core.Blockchain;
 import com.webank.openledger.core.ConnectionImpl;

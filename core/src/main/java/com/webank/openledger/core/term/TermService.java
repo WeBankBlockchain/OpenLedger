@@ -17,7 +17,7 @@ package com.webank.openledger.core.term;
 
 import java.math.BigInteger;
 
-import com.webank.openledger.contracts.Term;
+import com.webank.openledger.contractsbak.Term;
 import com.webank.openledger.core.Blockchain;
 import com.webank.openledger.core.constant.ErrorCode;
 import com.webank.openledger.core.exception.OpenLedgerBaseException;

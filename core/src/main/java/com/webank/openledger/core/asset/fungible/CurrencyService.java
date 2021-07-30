@@ -19,7 +19,7 @@ package com.webank.openledger.core.asset.fungible;
 import java.math.BigInteger;
 import java.util.List;
 
-import com.webank.openledger.contracts.Currency;
+import com.webank.openledger.contractsbak.Currency;
 import com.webank.openledger.core.Blockchain;
 import com.webank.openledger.core.asset.fungible.entity.CurrencyEntity;
 import com.webank.openledger.core.asset.fungible.entity.TransferResult;

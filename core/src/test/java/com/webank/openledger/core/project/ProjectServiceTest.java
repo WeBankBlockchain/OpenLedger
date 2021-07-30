@@ -16,17 +16,13 @@
 package com.webank.openledger.core.project;
 
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
-import com.webank.openledger.contracts.Project;
+import com.webank.openledger.contractsbak.Project;
 import com.webank.openledger.core.AccountImplTest;
 import com.webank.openledger.core.Blockchain;
 import com.webank.openledger.core.constant.ErrorCode;
-import com.webank.openledger.core.exception.OpenLedgerBaseException;
 import com.webank.openledger.core.response.ResponseData;
 
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +50,9 @@ public class ProjectServiceTest {
     String authCenterAddr = "0x1254e601ecde8bad5372ba188b26cb2052b56cde";
     String assetManagerAddr = "0xa41fac00c332b00bb36beb2772c831fb57fe2a80";
     String nonFungibleAssetManager="0x8f7b84195cfd596706fec3159cc5b083e173bada";
-
+    CryptoKeyPair admin;
+    CryptoKeyPair operator;
+    CryptoSuite ecdsaCryptoSuite = new CryptoSuite(CryptoType.ECDSA_TYPE);
 
     //组织org
     String org1Addr = "0x5106c2658d88a4e21137e259cb684b4d3741b65e";
@@ -67,15 +65,16 @@ public class ProjectServiceTest {
         blockchain = new Blockchain("application.properties");
         this.projectService = new ProjectService(blockchain, projectAddr);
         log.info("project superAdmin:{}", blockchain.getProjectAccount().getKeyPair().getAddress());
+        String pemFile = AccountImplTest.class.getClassLoader().getResource("conf/test.pem").getPath();
+        ecdsaCryptoSuite.loadAccount("pem", pemFile, "");
+        admin = ecdsaCryptoSuite.getCryptoKeyPair();
+        log.info(admin.getAddress());
+        pemFile = AccountImplTest.class.getClassLoader().getResource("conf/test2.pem").getPath();
+        ecdsaCryptoSuite.loadAccount("pem", pemFile, "");
+        operator = ecdsaCryptoSuite.getCryptoKeyPair();
+        LinkedHashMap<String, String> kvMap = new LinkedHashMap<>();
     }
-//
-//    @Test
-//    public void testDeploy() throws ContractException {
-//        Project project = Project.deploy(blockchain.getDefaultClient(), blockchain.getProjectAccount().getKeyPair(),
-//                accountManagerAddr, authCenterAddr, assetManagerAddr,nonFungibleAssetManager);
-//        projectAddr = project.getContractAddress();
-//        log.info("testDeploy:{}", projectAddr);
-//    }
+
 
     @Test
     public void testCreateProject() {
@@ -98,65 +97,10 @@ public class ProjectServiceTest {
 
     @Test
     public void testCreateOrganization() throws ContractException {
-        log.info(projectService.getProject().getAuthCenter());
-        ResponseData<String> ret = this.projectService.createOrganization();
+        ResponseData<String> ret = this.projectService.createOrganization(admin.getAddress());
         log.info("testCreateOrganization:{}, {}", ret.getResult(), ret.getErrMsg());
         assertEquals(ErrorCode.SUCCESS.getCode(), ret.getErrorCode().intValue());
         assertTrue(!ret.getResult().isEmpty());
-    }
-
-    @Test
-    public void testAddOrgDefaultAuth() {
-        this.projectService.addOrgDefaultAuth(authManagerAddr, org1Addr);
-    }
-
-    @Test
-    public void testAddDefaultKeyType() {
-        this.projectService.addDefaultKeyType(authCenterAddr);
-    }
-    CryptoKeyPair admin;
-    CryptoKeyPair operator;
-    CryptoSuite ecdsaCryptoSuite = new CryptoSuite(CryptoType.ECDSA_TYPE);
-
-    @Test
-    public void testCreateAddOrgAdmin() throws OpenLedgerBaseException, ContractException {
-
-        String pemFile = AccountImplTest.class.getClassLoader().getResource("conf/test.pem").getPath();
-        ecdsaCryptoSuite.loadAccount("pem", pemFile, "");
-        admin = ecdsaCryptoSuite.getCryptoKeyPair();
-        log.info(admin.getAddress());
-        pemFile = AccountImplTest.class.getClassLoader().getResource("conf/test2.pem").getPath();
-        ecdsaCryptoSuite.loadAccount("pem", pemFile, "");
-        operator = ecdsaCryptoSuite.getCryptoKeyPair();
-        LinkedHashMap<String, String> kvMap = new LinkedHashMap<>();
-
-        List<byte[]> keyList = new ArrayList<>();
-        List<byte[]> valueList = new ArrayList<>();
-        List<byte[]> kvList = new ArrayList<>();
-        for(Map.Entry<String,String> entry : kvMap.entrySet()){
-            byte[] k = entry.getKey().getBytes(StandardCharsets.UTF_8);
-            byte[] v = entry.getValue().getBytes(StandardCharsets.UTF_8);
-            keyList.add(k);
-            valueList.add(v);
-            kvList.add(k);
-            kvList.add(v);
-        }
-
-        ResponseData<String> ret = projectService.createAddOrgAdmin(org1Addr, admin.getAddress(), keyList, valueList);
-        ret = projectService.createAddOrgAdmin(org1Addr, operator.getAddress(), keyList, valueList);
-        log.info("testCreateAddOrgAdmin:{},{}", ret.getResult(), ret);
-        assertEquals(ErrorCode.SUCCESS.getCode(), ret.getErrorCode().intValue());
-        assertTrue(!ret.getResult().isEmpty());
-    }
-
-    @Test
-    public void testCreateOrganizationAndAddDefaultAuth() {
-        ResponseData<String> ret = this.projectService.createOrganization();
-        log.info("testCreateOrganizationAndAddDefaultAuth:{}, {}", ret.getResult(), ret.getErrMsg());
-        assertEquals(ErrorCode.SUCCESS.getCode(), ret.getErrorCode().intValue());
-        assertTrue(!ret.getResult().isEmpty());
-        this.projectService.addOrgDefaultAuth(authManagerAddr, ret.getResult());
-        this.projectService.addDefaultKeyType(authCenterAddr);
     }
 
     @Test
@@ -167,12 +111,48 @@ public class ProjectServiceTest {
         log.info(projectService.getProject().getTerm());
     }
 
-    @Test
-    public void testAddOrgAdmin() throws OpenLedgerBaseException {
-        String tobeAddedAdmin = "0x1";
-        ResponseData<Boolean> ret = projectService.addOrgAdmin(org1Addr, ORG_1_USER_ADDR);
-        assertEquals(ErrorCode.SUCCESS.getCode(), ret.getErrorCode().intValue());
-        assertTrue(!ret.getResult());
-    }
+
+//    @Test
+//    public void testCreateAddOrgAdmin() throws OpenLedgerBaseException, ContractException {
+//
+//
+//
+//        List<byte[]> keyList = new ArrayList<>();
+//        List<byte[]> valueList = new ArrayList<>();
+//        List<byte[]> kvList = new ArrayList<>();
+//        for(Map.Entry<String,String> entry : kvMap.entrySet()){
+//            byte[] k = entry.getKey().getBytes(StandardCharsets.UTF_8);
+//            byte[] v = entry.getValue().getBytes(StandardCharsets.UTF_8);
+//            keyList.add(k);
+//            valueList.add(v);
+//            kvList.add(k);
+//            kvList.add(v);
+//        }
+//
+//        ResponseData<String> ret = projectService.createAddOrgAdmin(org1Addr, admin.getAddress(), keyList, valueList);
+//        ret = projectService.createAddOrgAdmin(org1Addr, operator.getAddress(), keyList, valueList);
+//        log.info("testCreateAddOrgAdmin:{},{}", ret.getResult(), ret);
+//        assertEquals(ErrorCode.SUCCESS.getCode(), ret.getErrorCode().intValue());
+//        assertTrue(!ret.getResult().isEmpty());
+//    }
+//
+//    @Test
+//    public void testCreateOrganizationAndAddDefaultAuth() {
+//        ResponseData<String> ret = this.projectService.createOrganization();
+//        log.info("testCreateOrganizationAndAddDefaultAuth:{}, {}", ret.getResult(), ret.getErrMsg());
+//        assertEquals(ErrorCode.SUCCESS.getCode(), ret.getErrorCode().intValue());
+//        assertTrue(!ret.getResult().isEmpty());
+//        this.projectService.addOrgDefaultAuth(authManagerAddr, ret.getResult());
+//        this.projectService.addDefaultKeyType(authCenterAddr);
+//    }
+
+//
+//    @Test
+//    public void testAddOrgAdmin() throws OpenLedgerBaseException {
+//        String tobeAddedAdmin = "0x1";
+//        ResponseData<Boolean> ret = projectService.addOrgAdmin(org1Addr, ORG_1_USER_ADDR);
+//        assertEquals(ErrorCode.SUCCESS.getCode(), ret.getErrorCode().intValue());
+//        assertTrue(!ret.getResult());
+//    }
 
 }

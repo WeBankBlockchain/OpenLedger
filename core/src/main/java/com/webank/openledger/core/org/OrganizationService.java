@@ -15,12 +15,12 @@
 
 package com.webank.openledger.core.org;
 
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import com.webank.openledger.contracts.Organization;
 import com.webank.openledger.core.Blockchain;
+import com.webank.openledger.core.asset.BaseCustodyService;
+import com.webank.openledger.core.common.BaseHolder;
 import com.webank.openledger.core.response.DataToolUtils;
 import com.webank.openledger.core.response.ResponseData;
 import com.webank.openledger.utils.OpenLedgerUtils;
@@ -29,19 +29,18 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple2;
-import org.fisco.bcos.sdk.contract.Contract;
 import org.fisco.bcos.sdk.crypto.signature.ECDSASignatureResult;
 import org.fisco.bcos.sdk.model.TransactionReceipt;
 
 /**
  * organzation service
  *
- * @param <T> object extend contract
+ *
  */
 @Slf4j
 @Getter
 @Setter
-public class OrganizationService<T extends Contract> {
+public class OrganizationService extends BaseCustodyService<Organization> {
     /**
      * blockchain property
      */
@@ -51,6 +50,8 @@ public class OrganizationService<T extends Contract> {
      */
     protected Organization contractIns;
 
+    private BaseHolder accountHolder;
+
     /**
      * initializes the contract object
      *
@@ -58,17 +59,30 @@ public class OrganizationService<T extends Contract> {
      * @param contractAddress organzation contract address
      */
     public OrganizationService(Blockchain blockchain, String contractAddress) {
-        this.blockchain = blockchain;
-        contractIns = blockchain.getLedger(Blockchain.DEFAULT_LEDGERID).getContract(contractAddress, Organization.class);
+        super(blockchain, contractAddress,Organization.class);
+
+
     }
 
+
+    /**
+     * initializes the contract object
+     *
+     * @param blockchain blockchain property
+     * @param contractAddress organzation contract address
+     */
+    public OrganizationService(Blockchain blockchain, String contractAddress,String assetAddress) {
+        super(blockchain, contractAddress,Organization.class);
+        accountHolder = blockchain.getLedger(Blockchain.DEFAULT_LEDGERID).getContract(contractAddress, assetAddress,Organization.class);
+
+    }
     /**
      * get contract object
      *
      * @return
      */
-    public T getContractIns() {
-        return contractIns == null ? null : (T) contractIns;
+    public Organization getContractIns() {
+        return contractIns == null ? null :  contractIns;
     }
 
 
@@ -82,12 +96,12 @@ public class OrganizationService<T extends Contract> {
      * @return account innner address
      */
     public ResponseData<String> createAccount(String externalAccount, List<byte[]> keyList, List<byte[]> valueList, byte[] message, ECDSASignatureResult rs) {
-        TransactionReceipt transactionReceipt = contractIns.createAccountWithSign(externalAccount, keyList, valueList, OpenLedgerUtils.convertSignToByte(message, rs));
+        TransactionReceipt transactionReceipt = contractIns.createAccount(externalAccount, keyList, valueList, OpenLedgerUtils.convertSignToByte(message, rs));
         if (!transactionReceipt.isStatusOK()) {
             return DataToolUtils.handleTransaction(transactionReceipt, "");
         }
 
-        Tuple2<Boolean, String> ret = contractIns.getCreateAccountWithSignOutput(transactionReceipt);
+        Tuple2<Boolean, String> ret = contractIns.getCreateAccountOutput(transactionReceipt);
         if (!ret.getValue1()) {
             return DataToolUtils.handleTransaction(transactionReceipt, "");
         }
@@ -104,7 +118,7 @@ public class OrganizationService<T extends Contract> {
      * @return boolean is cancel successfully
      */
     public ResponseData<Boolean> cancel(String externalAccount, byte[] message, ECDSASignatureResult rs) {
-        TransactionReceipt transactionReceipt = contractIns.cancelWithSign(externalAccount, OpenLedgerUtils.convertSignToByte(message, rs));
+        TransactionReceipt transactionReceipt = contractIns.cancel(externalAccount, OpenLedgerUtils.convertSignToByte(message, rs));
         Boolean result = transactionReceipt.isStatusOK() ? contractIns.getCancelOutput(transactionReceipt).getValue1() : false;
         ResponseData<Boolean> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
         return responseData;
@@ -119,7 +133,7 @@ public class OrganizationService<T extends Contract> {
      * @return boolean is freeze successfully
      */
     public ResponseData<Boolean> freeze(String externalAccount, byte[] message, ECDSASignatureResult rs) {
-        TransactionReceipt transactionReceipt = contractIns.freezeWithSign(externalAccount, OpenLedgerUtils.convertSignToByte(message, rs));
+        TransactionReceipt transactionReceipt = contractIns.freeze(externalAccount, OpenLedgerUtils.convertSignToByte(message, rs));
         Boolean result = transactionReceipt.isStatusOK() ? contractIns.getFreezeOutput(transactionReceipt).getValue1() : false;
         ResponseData<Boolean> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
         return responseData;
@@ -133,39 +147,38 @@ public class OrganizationService<T extends Contract> {
      * @return boolean is unfreeze successfully
      */
     public ResponseData<Boolean> unfreeze(String externalAccount, byte[] message, ECDSASignatureResult rs) {
-        TransactionReceipt transactionReceipt = contractIns.unfreezeWithSign(externalAccount, OpenLedgerUtils.convertSignToByte(message, rs));
+        TransactionReceipt transactionReceipt = contractIns.unfreeze(externalAccount, OpenLedgerUtils.convertSignToByte(message, rs));
         Boolean result = transactionReceipt.isStatusOK() ? contractIns.getUnfreezeOutput(transactionReceipt).getValue1() : false;
         ResponseData<Boolean> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
         return responseData;
     }
 
-    /**
-     * change account external address
-     * @param oldAccount current account address
-     * @param newAccount new account address
-     * @param message args hash
-     * @param rs sign by orgAdmin
-     * @return
-     */
-    public ResponseData<Boolean> changeExternalAccount(String oldAccount, String newAccount, byte[] message, ECDSASignatureResult rs) {
-        TransactionReceipt transactionReceipt = contractIns.changeExternalAccountWithSign(oldAccount, newAccount, OpenLedgerUtils.convertSignToByte(message, rs));
-        Boolean result = transactionReceipt.isStatusOK() ? contractIns.getChangeExternalAccountWithSignOutput(transactionReceipt).getValue1() : false;
-        ResponseData<Boolean> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
-        return responseData;
-    }
+//    /**
+//     * change account external address
+//     * @param oldAccount current account address
+//     * @param newAccount new account address
+//     * @param message args hash
+//     * @param rs sign by orgAdmin
+//     * @return
+//     */
+//    public ResponseData<Boolean> changeExternalAccount(String oldAccount, String newAccount, byte[] message, ECDSASignatureResult rs) {
+//        TransactionReceipt transactionReceipt = contractIns.chan(oldAccount, newAccount, OpenLedgerUtils.convertSignToByte(message, rs));
+//        Boolean result = transactionReceipt.isStatusOK() ? contractIns.getChangeExternalAccountWithSignOutput(transactionReceipt).getValue1() : false;
+//        ResponseData<Boolean> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
+//        return responseData;
+//    }
 
     /**
      * add admin to organzation
      * reuqire admin's account has been create
      * @param externalAccount admin external address
-     * @param role account role value
      * @param message args hash
      * @param rs sign by orgadmin
      * @return
      */
-    public ResponseData<Boolean> addAdmin(String externalAccount, String role, byte[] message, ECDSASignatureResult rs) {
-        TransactionReceipt transactionReceipt = contractIns.addAdminWithSign(externalAccount, role.getBytes(StandardCharsets.UTF_8), OpenLedgerUtils.convertSignToByte(message, rs));
-        Boolean result = transactionReceipt.isStatusOK() ? contractIns.getAddAdminWithSignOutput(transactionReceipt).getValue1() : false;
+    public ResponseData<Boolean> addAdmin(String externalAccount,  byte[] message, ECDSASignatureResult rs) {
+        TransactionReceipt transactionReceipt = contractIns.registerAdmin(externalAccount, OpenLedgerUtils.convertSignToByte(message, rs));
+        Boolean result = transactionReceipt.isStatusOK() ? contractIns.getRegisterAdminOutput(transactionReceipt).getValue1() : false;
         ResponseData<Boolean> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
         return responseData;
     }
@@ -181,56 +194,47 @@ public class OrganizationService<T extends Contract> {
      * @return
      */
     public ResponseData<Boolean> removeAdmin(String externalAccount, byte[] message, ECDSASignatureResult rs) {
-        TransactionReceipt transactionReceipt = contractIns.removeAdminWithSign(externalAccount, OpenLedgerUtils.convertSignToByte(message, rs));
-        Boolean result = transactionReceipt.isStatusOK() ? contractIns.getRemoveAdminWithSignOutput(transactionReceipt).getValue1() : false;
+        TransactionReceipt transactionReceipt = contractIns.unregisterAdmin(externalAccount, OpenLedgerUtils.convertSignToByte(message, rs));
+        Boolean result = transactionReceipt.isStatusOK() ? contractIns.getUnregisterAdminOutput(transactionReceipt).getValue1() : false;
         ResponseData<Boolean> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
         return responseData;
     }
 
+
     /**
-     * create asset of organzation
-     * @param externalAccount operator account address
-     * @param assetName asset's name custom defined
-     * @param isFungible boolean is fungible
+     * add admin to organzation
+     * reuqire admin's account has been create
+     * @param externalAccount admin external address
      * @param message args hash
-     * @param rs sign by orgAdmin
-     * @return asset address
+     * @param rs sign by orgadmin
+     * @return
      */
-    public ResponseData<String> createAsset(String externalAccount, String assetName, Boolean isFungible, byte[] message, ECDSASignatureResult rs) {
-        TransactionReceipt transactionReceipt = contractIns.createAssetWithSign(externalAccount, assetName, isFungible, OpenLedgerUtils.convertSignToByte(message, rs));
-        String result = transactionReceipt.isStatusOK() ? contractIns.getCreateAssetWithSignOutput(transactionReceipt).getValue1() : null;
-        ResponseData<String> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
+    public ResponseData<Boolean> addMember(String externalAccount,  byte[] message, ECDSASignatureResult rs) {
+        TransactionReceipt transactionReceipt = contractIns.registerMember(externalAccount, OpenLedgerUtils.convertSignToByte(message, rs));
+        Boolean result = transactionReceipt.isStatusOK() ? contractIns.getRegisterMemberOutput(transactionReceipt).getValue1() : false;
+        ResponseData<Boolean> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
         return responseData;
     }
 
+
     /**
-     * update asset of organzation
-     * @param externalAccount operator account address
-     * @param assetName asset's name custom defined
-     * @param isFungible boolean is fungible
+     * remove admin from organzation
+     * reuqire admin's account has been add as a admin
+     * TODO Whether the  account exists is determined by the administrator
+     * @param externalAccount admin external address
      * @param message args hash
-     * @param rs sign by orgAdmin
-     * @return asset address
+     * @param rs sign by orgadmin
+     * @return
      */
-    public ResponseData<String> upgradeAsset(String externalAccount, String assetName, Boolean isFungible, byte[] message, ECDSASignatureResult rs) {
-        TransactionReceipt transactionReceipt = contractIns.upgradeAsset(externalAccount, assetName, isFungible, OpenLedgerUtils.convertSignToByte(message, rs));
-        String result = transactionReceipt.isStatusOK() ? contractIns.getUpgradeAssetOutput(transactionReceipt).getValue1() : null;
-        ResponseData<String> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
+    public ResponseData<Boolean> removeMember(String externalAccount, byte[] message, ECDSASignatureResult rs) {
+        TransactionReceipt transactionReceipt = contractIns.unregisterMember(externalAccount, OpenLedgerUtils.convertSignToByte(message, rs));
+        Boolean result = transactionReceipt.isStatusOK() ? contractIns.getUnregisterMemberOutput(transactionReceipt).getValue1() : false;
+        ResponseData<Boolean> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
         return responseData;
     }
-    /**
-     * create currency of project
-     *
-     * @param name currency's name custom defined
-     * @param symbol currency's symbol custom defined
-     * @param decimals currency's decimals custom defined
-     * @return currency asset address
-     */
-    public ResponseData<String> createCurrency(String name, String symbol, BigInteger decimals) {
-        TransactionReceipt transactionReceipt = contractIns.createCurrency(name, symbol, decimals);
-        String result = transactionReceipt.isStatusOK() ? contractIns.getCreateCurrencyOutput(transactionReceipt).getValue1() : null;
-        ResponseData<String> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
-        return responseData;
-    }
+
+
+
+
 
 }

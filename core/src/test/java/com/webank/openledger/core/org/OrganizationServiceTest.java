@@ -23,8 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.webank.openledger.contracts.AuthCenter;
-import com.webank.openledger.contracts.Organization;
+import com.webank.openledger.contractsbak.AuthCenter;
 import com.webank.openledger.core.AccountImplTest;
 import com.webank.openledger.core.Blockchain;
 import com.webank.openledger.core.auth.AuthCenterService;
@@ -47,7 +46,6 @@ import static org.junit.Assert.assertTrue;
 @Slf4j
 public class OrganizationServiceTest {
     private static final String ORG_1_USER_PRI_KEY = "1c0362fb21ea3cc00dd2dbc0307232cc50782fb355bb507f5f9312d0e10db618";
-    private static final String ORG_1_USER_1_ADDR = "0xa1ebac1c01725ef092f0a2d7192c6ab37106cc86";
     private static final String ORG_1_USER_2_PRI_KEY = "12c216b141605557d4772d0d73c4992100384e811db9cbc850c64ab1707f9dfe";
     private static final String ORG_1_USER_2_ADDR = "0xe894706e8dc3d03808fcc5863fc43c1ca24392f0";
     Blockchain blockchain;
@@ -67,10 +65,12 @@ public class OrganizationServiceTest {
     //组织org
     String org1Addr = "0x5106c2658d88a4e21137e259cb684b4d3741b65e";
     String org2Addr = "0x0";
-    private OrganizationService<Organization> orgService;
+    private OrganizationService orgService;
     private AuthCenterService<AuthCenter> authCenterService;
     CryptoKeyPair admin;
     CryptoKeyPair user;
+    CryptoKeyPair operator;
+    private   String ORG_1_USER_1_ADDR = "0xa1ebac1c01725ef092f0a2d7192c6ab37106cc86";
 
     @Before
     public void init() {
@@ -93,17 +93,82 @@ public class OrganizationServiceTest {
         pemFile = AccountImplTest.class.getClassLoader().getResource("conf/test.pem").getPath();
         ecdsaCryptoSuite.loadAccount("pem", pemFile, "");
         admin = ecdsaCryptoSuite.getCryptoKeyPair();
+
+        pemFile = AccountImplTest.class.getClassLoader().getResource("conf/test2.pem").getPath();
+        ecdsaCryptoSuite.loadAccount("pem", pemFile, "");
+        operator = ecdsaCryptoSuite.getCryptoKeyPair();
     }
 
     @Test
-    public void testDeploy() throws ContractException {
-        Organization organization = Organization.deploy(blockchain.getDefaultClient(), blockchain.getProjectAccount().getKeyPair(),
-                projectAddr, authCenterAddr);
-        org1Addr = organization.getContractAddress();
-        log.info("testDeploy:{}", org1Addr);
+    public void testAddAdmin() {
+        //账户外部地址
+        String externalAccount = "0x9c4269b93bab5a83565279f897df031c88a86f79";
+        String role = "admin";
+        // 组织管理员公私钥对
+//        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
+        BigInteger nonce=new BigInteger("1");
+        byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(externalAccount), role.getBytes(),
+                OpenLedgerUtils.getBytes32(nonce.toByteArray()));
+        byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
+
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(admin, message);
+        ResponseData<Boolean> ret = orgService.addAdmin(operator.getAddress(),message, sign);
+        log.info("addAdmin result:{}", ret.getResult());
     }
 
-    CryptoSuite ecdsaCryptoSuite = new CryptoSuite(CryptoType.ECDSA_TYPE);
+    @Test
+    public void testRemoveAdmin() {
+        //账户外部地址
+        String externalAccount = "0x9c4269b93bab5a83565279f897df031c88a86f79";
+        // 组织管理员公私钥对
+//        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
+        BigInteger nonce=new BigInteger("1");
+
+        byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(externalAccount),
+                OpenLedgerUtils.getBytes32(nonce.toByteArray()));
+        byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
+
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(admin, message);
+        ResponseData<Boolean> ret = orgService.removeAdmin(user.getAddress(), message, sign);
+        log.info("addAdmin result:{}", ret.getResult());
+    }
+
+
+    @Test
+    public void testAddMember() {
+        //账户外部地址
+        String externalAccount = "0x9c4269b93bab5a83565279f897df031c88a86f79";
+        String role = "admin";
+        // 组织管理员公私钥对
+//        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
+        BigInteger nonce=new BigInteger("1");
+
+        byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(externalAccount), role.getBytes(),
+                OpenLedgerUtils.getBytes32(nonce.toByteArray()));
+        byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
+
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
+        ResponseData<Boolean> ret = orgService.addMember(externalAccount,message, sign);
+        log.info("addMember result:{}", ret.getResult());
+    }
+
+    @Test
+    public void testRemoveMember() {
+        //账户外部地址
+        String externalAccount = "0x9c4269b93bab5a83565279f897df031c88a86f79";
+        // 组织管理员公私钥对
+//        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
+        BigInteger nonce=new BigInteger("1");
+
+        byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(externalAccount),
+                OpenLedgerUtils.getBytes32(nonce.toByteArray()));
+        byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
+
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
+        ResponseData<Boolean> ret = orgService.removeAdmin(externalAccount, message, sign);
+        log.info("addAdmin result:{}", ret.getResult());
+    }
+
 
     @Test
     public void testCreateAccount() throws ContractException {
@@ -122,8 +187,9 @@ public class OrganizationServiceTest {
             kvList.add(v);
         }
 
-        BigInteger nonce = authCenterService.getNonceFromAccount(admin.getAddress()).getResult();
-        log.info("createAccount get nonce:{}", nonce.intValue());
+//        BigInteger nonce = authCenterService.getNonceFromAccount(admin.getAddress()).getResult();
+//        log.info("createAccount get nonce:{}", nonce.intValue());
+        BigInteger nonce = new BigInteger("1");
 
         byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(user.getAddress()),
                 OpenLedgerUtils.concatByte(kvList),
@@ -139,30 +205,32 @@ public class OrganizationServiceTest {
 
     @Test
     public void testFreeze() {
-        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
-        log.info("freeze, get nonce:{}", nonce.intValue());
+//        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
+//        log.info("freeze, get nonce:{}", nonce.intValue());
+        BigInteger nonce = new BigInteger("1");
 
         byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(ORG_1_USER_1_ADDR),
                 OpenLedgerUtils.getBytes32(nonce.toByteArray()));
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
 
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(org1Admin.getCryptoKeyPair(), message);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(admin, message);
 
-        ResponseData<Boolean> ret = this.orgService.freeze(ORG_1_USER_1_ADDR, message, sign);
+        ResponseData<Boolean> ret = this.orgService.freeze(user.getAddress(), message, sign);
         log.info("freeze ret:{}, {}", ret.getResult(), ret);
         assertTrue(ret.getResult());
     }
 
     @Test
     public void testUnfreeze() {
-        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
-        log.info("unfreeze, get nonce:{}", nonce.intValue());
+//        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
+//        log.info("unfreeze, get nonce:{}", nonce.intValue());
+        BigInteger nonce = new BigInteger("1");
 
         byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(ORG_1_USER_1_ADDR),
                 OpenLedgerUtils.getBytes32(nonce.toByteArray()));
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
 
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(org1Admin.getCryptoKeyPair(), message);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
 
         ResponseData<Boolean> ret = this.orgService.unfreeze(ORG_1_USER_1_ADDR, message, sign);
         log.info("unfreeze ret:{}, {}", ret.getResult(), ret);
@@ -171,44 +239,46 @@ public class OrganizationServiceTest {
 
     @Test
     public void testCancel() {
-        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
-        log.info("cancel, get nonce:{}", nonce.intValue());
+//        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
+//        log.info("cancel, get nonce:{}", nonce.intValue());
+        BigInteger nonce = new BigInteger("1");
 
         byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(ORG_1_USER_2_ADDR),
                 OpenLedgerUtils.getBytes32(nonce.toByteArray()));
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
 
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(org1Admin.getCryptoKeyPair(), message);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
 
-        ResponseData<Boolean> ret = this.orgService.cancel(ORG_1_USER_2_ADDR, message, sign);
+        ResponseData<Boolean> ret = this.orgService.cancel(ORG_1_USER_1_ADDR, message, sign);
         log.info("cancel ret:{}, {}", ret.getResult(), ret);
         assertTrue(ret.getResult());
     }
 
 
-    @Test
-    public void testChangeExternalAccount() {
-        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
-        log.info("changeExternalAccount, get nonce:{}", nonce.intValue());
-        assertTrue(nonce.intValue() > 0);
-
-        byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(ORG_1_USER_1_ADDR),
-                OpenLedgerUtils.convertStringToAddressByte(ORG_1_USER_2_ADDR),
-                OpenLedgerUtils.getBytes32(nonce.toByteArray()));
-        byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
-
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(org1Admin.getCryptoKeyPair(), message);
-
-        ResponseData<Boolean> ret = this.orgService.changeExternalAccount(ORG_1_USER_1_ADDR, ORG_1_USER_2_ADDR, message, sign);
-        log.info("changeExternalAccount ret:{}, {}", ret.getResult(), ret);
-        assertTrue(ret.getResult());
-    }
+//    @Test
+//    public void testChangeExternalAccount() {
+//        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
+//        log.info("changeExternalAccount, get nonce:{}", nonce.intValue());
+//        assertTrue(nonce.intValue() > 0);
+//
+//        byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(ORG_1_USER_1_ADDR),
+//                OpenLedgerUtils.convertStringToAddressByte(ORG_1_USER_2_ADDR),
+//                OpenLedgerUtils.getBytes32(nonce.toByteArray()));
+//        byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
+//
+//        ECDSASignatureResult sign = OpenLedgerUtils.sign(org1Admin.getCryptoKeyPair(), message);
+//
+//        ResponseData<Boolean> ret = this.orgService.changeExternalAccount(ORG_1_USER_1_ADDR, ORG_1_USER_2_ADDR, message, sign);
+//        log.info("changeExternalAccount ret:{}, {}", ret.getResult(), ret);
+//        assertTrue(ret.getResult());
+//    }
 
     @Test
     public void testCreateAsset() {
         String assetName = "test20210531112";
         Boolean isFungible = false;
-        BigInteger nonce = authCenterService.getNonceFromAccount(admin.getAddress()).getResult();
+//        BigInteger nonce = authCenterService.getNonceFromAccount(admin.getAddress()).getResult();
+        BigInteger nonce = new BigInteger("1");
         log.info("testCreateAsset, get nonce:{}", nonce.intValue());
 
         byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(admin.getAddress()),
@@ -217,40 +287,11 @@ public class OrganizationServiceTest {
 
         ECDSASignatureResult sign = OpenLedgerUtils.sign(admin, message);
 
-        ResponseData<String> ret = this.orgService.createAsset(admin.getAddress(), assetName, isFungible, message, sign);
+        ResponseData<String> ret = this.orgService.createAsset(assetName, isFungible, message, sign);
         log.info("testCreateAsset ret:{}, {}", ret.getResult(), ret);
     }
 
-    @Test
-    public void testAddAdmin() {
-        //账户外部地址
-        String externalAccount = "0x9c4269b93bab5a83565279f897df031c88a86f79";
-        String role = "admin";
-        // 组织管理员公私钥对
-        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
-        byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(externalAccount), role.getBytes(),
-                OpenLedgerUtils.getBytes32(nonce.toByteArray()));
-        byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
 
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(org1Admin.getCryptoKeyPair(), message);
-        ResponseData<Boolean> ret = orgService.addAdmin(externalAccount, role, message, sign);
-        log.info("addAdmin result:{}", ret.getResult());
-    }
-
-    @Test
-    public void testRemoveAdmin() {
-        //账户外部地址
-        String externalAccount = "0x9c4269b93bab5a83565279f897df031c88a86f79";
-        // 组织管理员公私钥对
-        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
-        byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(externalAccount),
-                OpenLedgerUtils.getBytes32(nonce.toByteArray()));
-        byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
-
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(org1Admin.getCryptoKeyPair(), message);
-        ResponseData<Boolean> ret = orgService.removeAdmin(externalAccount, message, sign);
-        log.info("addAdmin result:{}", ret.getResult());
-    }
 
     @Test
     public void testGetllAsset() throws ContractException {
@@ -285,7 +326,7 @@ public class OrganizationServiceTest {
 
         ECDSASignatureResult sign = OpenLedgerUtils.sign(admin, message);
 
-        ResponseData<String> ret = this.orgService.upgradeAsset(admin.getAddress(), assetName, isFungible, message, sign);
+        ResponseData<String> ret = this.orgService.upgradeAsset( assetName, isFungible, message, sign);
         log.info("testCreateAsset ret:{}, {}", ret.getResult(), ret);
     }
 }
