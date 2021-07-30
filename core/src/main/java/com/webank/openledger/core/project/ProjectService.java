@@ -155,7 +155,7 @@ public class ProjectService<T extends Contract> {
 
 //            AssetPoolManager assetPoolManager = AssetPoolManager.deploy(blockchain.getDefaultClient(), blockchain.getProjectAccount().getKeyPair());
 
-           //TODO: fix assetPool
+            //TODO: fix assetPool
             projectManager.setAssetPoolManagerAddr(currencyManager.getContractAddress());
 
             project = Project.deploy(blockchain.getDefaultClient(), blockchain.getProjectAccount().getKeyPair(),
@@ -163,9 +163,9 @@ public class ProjectService<T extends Contract> {
             String projectAddr = project.getContractAddress();
 
             log.info("createProject success! superAdmin:{}, " +
-                            "projectAddr:{}, accountManagerAddr:{}, authManagerAddr:{}, aclManager:{}, assetManagerAddr:{}",
+                            "projectAddr:{}, accountManagerAddr:{},  aclManager:{}, assetManagerAddr:{}",
                     blockchain.getProjectAccount().getKeyPair().getAddress(),
-                    projectAddr, projectManager.getAccountManagerAddr(), projectManager.getAuthManagerAddr(), projectManager.getAclManagerAddr(), projectManager.getFungibleAssetManagerAddr());
+                    projectAddr, projectManager.getAccountManagerAddr(), projectManager.getAclManagerAddr(), projectManager.getFungibleAssetManagerAddr());
             projectManager.setProjectAddr(projectAddr);
             return new ResponseData<>(projectManager.getResult(), ErrorCode.SUCCESS);
 
@@ -182,10 +182,19 @@ public class ProjectService<T extends Contract> {
      */
     public ResponseData<String> createOrganization(String external) {
         TransactionReceipt transactionReceipt = project.createOrganization(external);
-        log.info("createOrganization:{}", transactionReceipt.toString());
         String result = transactionReceipt.isStatusOK() ?
                 project.getCreateOrganizationOutput(transactionReceipt).getValue1() : "";
         ResponseData<String> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
+        log.info("createOrganization:{}", responseData.getResult());
+
+        if (transactionReceipt.isStatusOK()) {
+            transactionReceipt = project.initRolesByProject(responseData.getResult());
+
+        }
+        if (!transactionReceipt.isStatusOK()) {
+            responseData = DataToolUtils.handleTransaction(transactionReceipt, result);
+            return responseData;
+        }
         return responseData;
     }
 

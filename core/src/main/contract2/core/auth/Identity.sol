@@ -54,9 +54,9 @@ contract Identity {
     modifier checkPermission(string operation, bytes32[4] sign){
         bytes memory detail;
         require(check(genAuthByTableArgs(address(this), sign), operation, detail), "Identity:Forbbiden ".strConcat(operation));
-
         _;
     }
+
 
     IAclManager aclManager;
     address orgAddress;
@@ -80,8 +80,20 @@ contract Identity {
         return address(role);
     }
 
+    function createRole(string name) external returns (address){
+        Role role = new Role(name);
+        rolesManage.insert(address(role));
+        return address(role);
+    }
+
 
     function createResourceGroup(bytes32[4] sign) public checkPermission(DEFAULT_GRANT_VALUE, sign) returns (address){
+        ResourceGroup res = new ResourceGroup();
+        resourceManage.insert(address(res));
+        return address(res);
+    }
+
+    function createResourceGroup() external  returns (address){
         ResourceGroup res = new ResourceGroup();
         resourceManage.insert(address(res));
         return address(res);
@@ -133,6 +145,12 @@ contract Identity {
     }
 
     function addResGroupToRole(address role, address resourceGroup, bytes32[4] sign) public checkPermission(DEFAULT_GRANT_VALUE, sign) returns (bool){
+        require(resourceManage.contains(resourceGroup), "resource is not exist!");
+        require(rolesManage.contains(role), "role is not exist!");
+        roleResource.insert(role, resourceGroup);
+        return true;
+    }
+    function addResGroupToRole(address role, address resourceGroup) external returns (bool){
         require(resourceManage.contains(resourceGroup), "resource is not exist!");
         require(rolesManage.contains(role), "role is not exist!");
         roleResource.insert(role, resourceGroup);
@@ -230,16 +248,9 @@ contract Identity {
     }
 
     function genAuthByTableArgs(address resAddress, bytes32[4] sign) public view returns (address[]){
-        bytes32 nullByte;
         address callerId;
-        if (keccak256(sign[0]) == keccak256(nullByte)) {
-            callerId = IResource(msg.sender).getHolder();
-            require(address(0) != callerId, "Identity:caller is not holder");
-
-        } else {
-            address txOrgin = sign.checkSign();
-            callerId = aclManager.getIdByExternal(txOrgin);
-        }
+        address txOrgin = sign.checkSign();
+        callerId = aclManager.getIdByExternal(txOrgin);
         address[] memory addressList = new address[](2);
         addressList[0] = resAddress;
         addressList[1] = callerId;

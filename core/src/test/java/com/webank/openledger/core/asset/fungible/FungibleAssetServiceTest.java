@@ -65,7 +65,7 @@ public class FungibleAssetServiceTest {
     private FungibleAssetService fungibleAssetService;
     private AuthCenterService<AuthCenter> authCenterSDK;
     private BaseCustodyService<Organization> custody;
-    private AccountHolderService<Account> holder;
+    private AccountService holder;
     private String custodyContractAddress = "0x9857ea5d68fb1a7888d24c27e66f65b0cbded57b";
     private String holderContractAddress = "0x9857ea5d68fb1a7888d24c27e66f65b0cbded57b";
     private String assetAddress = "";

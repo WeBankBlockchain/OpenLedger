@@ -15,7 +15,9 @@ contract BaseResource {
     using SignLib for bytes32[4];
     address holder;
     constructor(address account) public {
-        holder = account;
+        if (account != address(0)) {
+            holder = account;
+        }
     }
 
     function getHolder() public view returns (address){

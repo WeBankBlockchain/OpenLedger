@@ -43,13 +43,12 @@ public class ProjectServiceTest {
     private static final String ORG_1_USER_PRI_KEY = "0x1c0362fb21ea3cc00dd2dbc0307232cc50782fb355bb507f5f9312d0e10db618";
     private static final String ORG_1_USER_ADDR = "0xa1ebac1c01725ef092f0a2d7192c6ab37106cc86";
     Blockchain blockchain;
-    //合约地址
-    String projectAddr = "0x6df88fe42bf13bbd42b156fc8c83a438845336e1";
-    String accountManagerAddr = "0xde5248911bca2468e71efc7a57e5002963917fd5";
-    String authManagerAddr = "0x4ce6fc942eb79e89dbe597eac4dab78a8c29c2f1";
-    String authCenterAddr = "0x1254e601ecde8bad5372ba188b26cb2052b56cde";
-    String assetManagerAddr = "0xa41fac00c332b00bb36beb2772c831fb57fe2a80";
-    String nonFungibleAssetManager="0x8f7b84195cfd596706fec3159cc5b083e173bada";
+    String projectAddr = "0x22efd5faf924bdc1be1a5e1c0458f1332cc85780";
+    String accountManagerAddr = "0xfb78c1760adbb93dbf736d5555c977100da06adf";
+    String authManagerAddr = "null";
+    String authCenterAddr = "0xa91f545c888cb8fe03a99be792c0ea80fe4400ff";
+    String assetManagerAddr = "0xd0d492c4674ec8e28139891e5b9a0e7ff4de082b";
+    String nonFungibleAssetManager="0x2bac16148c96cf5e2baddf4debd88b85553263d6";
     CryptoKeyPair admin;
     CryptoKeyPair operator;
     CryptoSuite ecdsaCryptoSuite = new CryptoSuite(CryptoType.ECDSA_TYPE);
@@ -77,7 +76,7 @@ public class ProjectServiceTest {
 
 
     @Test
-    public void testCreateProject() {
+    public void testCreateProject() throws ContractException {
         ResponseData<List<String>> rsp = this.projectService.createProject();
         assertTrue(rsp.getErrorCode() == ErrorCode.SUCCESS.getCode());
         log.info("create project:{}", rsp.getResult());
@@ -92,7 +91,7 @@ public class ProjectServiceTest {
                 rsp.getResult().get(3),
                 rsp.getResult().get(4),
                 rsp.getResult().get(5));
-
+        testCreateOrganization();
     }
 
     @Test

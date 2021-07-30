@@ -25,7 +25,7 @@ contract BaseOrgAdmin is BaseResourceWithRole {
         _;
     }
     modifier onlyProject() {
-        require(msg.sender == _project && holder == address(0), "BaseAccountHolder:required project call! ");
+        require(msg.sender == address(_project), "BaseOrgAdmin:required project call! ");
         _;
     }
     string constant roleAdmin = "ADMIN";  //本机构管理员
@@ -34,42 +34,43 @@ contract BaseOrgAdmin is BaseResourceWithRole {
     string[]  DEFAULT_MEM_OPERATION = ["registerAsset", "upgradeAsset", "setPrice", "deposit", "setRate", "getHolders",
     "openAccount", "addBook", "deposit", "withdrawl", "getTotalBalance", "queryBook",
     "issue", "getNoteDetail", "getAccountNoteSize", "updateNoteNo", "updateNoteProperties", "getNoteProperties", "updateNoteBatch",
-    "freezeNote", "unfreezeNote", "getTotalNoteSize", "getTotalNoteSize", "getTearNotes", "enableBatch", "getBalance","cancel","freeze","unfreeze","createAccount"];
+    "freezeNote", "unfreezeNote", "getTotalNoteSize", "getTotalNoteSize", "getTearNotes", "enableBatch", "getBalance", "cancel", "freeze", "unfreeze", "createAccount"];
 
     address[] accountList;
-    address accountManager;
-    address _project;
+    IProject _project;
 
-    constructor (address project, address _holder) public BaseResourceWithRole(_holder){
-        accountManager = IProject(_project).getAccountManager();
-        _project = project;
+    constructor (address projectAddr) public BaseResourceWithRole(address(0)) {
+        _project = IProject(projectAddr);
     }
 
     function setHolder(address _holder) internal {
         holder = _holder;
-        bytes32[4] nullBytes;
-        initRoles(nullBytes);
     }
 
     function createHolder(address adminExternal) external onlyProject returns (address){
-        address adminId = IAclManager(IProject(_project).getAclManager()).createId(adminExternal);
+        address adminId = IAclManager(_project.getAclManager()).createId(adminExternal);
         require(address(0) != adminId, "BaseOrgAdmin:createId failed!");
         setHolder(adminId);
-        return address(adminId);
+        return adminId;
     }
 
-    function initRoles(bytes32[4] sign) internal returns (bool){
-        createRole(roleAdmin, sign);
-        addOperationToResGroup(roleAdmin, DEFAULT_ADMIN_OPERATION, sign);
-        createRole(roleMember, sign);
-        addOperationToResGroup(roleMember, DEFAULT_MEM_OPERATION, sign);
+    function initRoles(bytes32[4] sign) public onlyProject returns (bool){
+        require(createRole(roleAdmin, sign), "createRole admin fail!");
+//        require(createRole(roleMember, sign), "createRole member fail!");
+//        require(addOperationToResGroup(roleAdmin, DEFAULT_ADMIN_OPERATION, sign), "addOperationToResGroup for admin fail");
+//        require(addOperationToResGroup(roleMember, DEFAULT_MEM_OPERATION, sign), "addOperationToResGroup for member fail");
         return true;
     }
 
+    function initRolesOperation(bytes32[4] sign) public onlyProject returns (bool){
+        require(addOperationToResGroup(roleAdmin, DEFAULT_ADMIN_OPERATION, sign), "addOperationToResGroup for admin fail");
+        require(addOperationToResGroup(roleMember, DEFAULT_MEM_OPERATION, sign), "addOperationToResGroup for member fail");
+        return true;
+    }
     //新增一个管理员
     ///[param[in] another, 新增管理员地址
     function registerAdmin(address adminExternal, bytes32[4] sign) external returns (bool){
-        address adminId = IAclManager(IProject(_project).getAclManager()).createId(adminExternal);
+        address adminId = IAclManager(_project.getAclManager()).createId(adminExternal);
         require(address(0) != adminId, "BaseOrgAdmin:createId failed!");
         grantId(roleAdmin, adminExternal, sign);
         return true;
@@ -78,7 +79,7 @@ contract BaseOrgAdmin is BaseResourceWithRole {
     //新增一个组织成员
     ///[param[in] member, 新增组织成员地址
     function registerMember(address memberExternal, bytes32[4] sign) external returns (bool){
-        address memId = IAclManager(IProject(_project).getAclManager()).createId(memberExternal);
+        address memId = IAclManager(_project.getAclManager()).createId(memberExternal);
         require(address(0) != memId, "BaseOrgAdmin:createId failed!");
         grantId(roleMember, memberExternal, sign);
         return true;

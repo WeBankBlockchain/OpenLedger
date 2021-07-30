@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple2;
 import org.fisco.bcos.sdk.crypto.signature.ECDSASignatureResult;
 import org.fisco.bcos.sdk.model.TransactionReceipt;
+import org.fisco.bcos.sdk.transaction.model.exception.ContractException;
 
 /**
  * organzation service
@@ -60,6 +61,7 @@ public class OrganizationService extends BaseCustodyService<Organization> {
      */
     public OrganizationService(Blockchain blockchain, String contractAddress) {
         super(blockchain, contractAddress,Organization.class);
+        contractIns = blockchain.getLedger(Blockchain.DEFAULT_LEDGERID).getContract(contractAddress, Organization.class);
 
 
     }
@@ -176,7 +178,7 @@ public class OrganizationService extends BaseCustodyService<Organization> {
      * @param rs sign by orgadmin
      * @return
      */
-    public ResponseData<Boolean> addAdmin(String externalAccount,  byte[] message, ECDSASignatureResult rs) {
+    public ResponseData<Boolean> addAdmin(String externalAccount,  byte[] message, ECDSASignatureResult rs) throws ContractException {
         TransactionReceipt transactionReceipt = contractIns.registerAdmin(externalAccount, OpenLedgerUtils.convertSignToByte(message, rs));
         Boolean result = transactionReceipt.isStatusOK() ? contractIns.getRegisterAdminOutput(transactionReceipt).getValue1() : false;
         ResponseData<Boolean> responseData = DataToolUtils.handleTransaction(transactionReceipt, result);

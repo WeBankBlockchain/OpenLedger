@@ -63,7 +63,7 @@ public class OrganizationServiceTest {
 
 
     //组织org
-    String org1Addr = "0x5106c2658d88a4e21137e259cb684b4d3741b65e";
+    String org1Addr = "0xd2ec25c92f0b5a181295ac3448ea559f44a6e725";
     String org2Addr = "0x0";
     private OrganizationService orgService;
     private AuthCenterService<AuthCenter> authCenterService;
@@ -100,10 +100,11 @@ public class OrganizationServiceTest {
     }
 
     @Test
-    public void testAddAdmin() {
+    public void testAddAdmin() throws ContractException {
         //账户外部地址
         String externalAccount = "0x9c4269b93bab5a83565279f897df031c88a86f79";
         String role = "admin";
+        log.info("admin"+admin.getAddress());
         // 组织管理员公私钥对
 //        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
         BigInteger nonce=new BigInteger("1");

@@ -36,10 +36,10 @@ contract BaseCustody {
     IAssetManager assetManager;
     address project;
 
-    constructor(address _project){
-        assetManager = IAssetManager(IProject(_project).getFingibleAssetManager());
-        nonFungibleAssetManager = INonFungibleManager(IProject(_project).getNonFingibleAssetManager());
-        project = _project;
+    constructor(address projectAddr){
+        assetManager = IAssetManager(IProject(projectAddr).getFingibleAssetManager());
+        nonFungibleAssetManager = INonFungibleManager(IProject(projectAddr).getNonFingibleAssetManager());
+        project = projectAddr;
     }
 
     function registerAsset(string assetName, bool isFungible, bytes32[4] sign) public onlyMemberWithoutDetail(sign, "registerAsset") returns (address, bool){

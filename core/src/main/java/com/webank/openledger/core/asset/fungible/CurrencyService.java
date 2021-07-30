@@ -42,13 +42,13 @@ import org.fisco.bcos.sdk.model.TransactionReceipt;
  * @author pepperli
  */
 @Slf4j
-public class CurrencyService extends StandardAssetService<Currency> {
+public class CurrencyService {
     private Currency currency;
 
-    public CurrencyService(Blockchain blockchain, String contractAddress) {
-        super(blockchain, contractAddress, Currency.class);
-        currency = getAsset();
-    }
+//    public CurrencyService(Blockchain blockchain, String contractAddress) {
+//        super(blockchain, contractAddress, Currency.class);
+//        currency = getAsset();
+//    }
 
     /**
      * get asset information
@@ -97,26 +97,27 @@ public class CurrencyService extends StandardAssetService<Currency> {
      * @throws OpenLedgerBaseException
      */
     public ResponseData<TransferResult> deposit(@NonNull String operatorAddress, @NonNull String account, @NonNull BigInteger amount, int operationType, String desc, String subject, String relateAsset, @NonNull byte[] message, @NonNull ECDSASignatureResult rs) throws OpenLedgerBaseException {
-        try {
-            List<String> addressList = genAddress(null, account, operatorAddress, contractAddress, relateAsset);
-            List<byte[]> resultSign = OpenLedgerUtils.convertSignToByte(message, rs);
-
-            TransactionReceipt transactionReceipt = asset.deposit(
-                    addressList,
-                    amount,
-                    genType(operationType),
-                    genDetail(desc, subject),
-                    resultSign);
-            TransferResult tr = null;
-            Tuple2<Boolean, List<BigInteger>> response = transactionReceipt.isStatusOK() ? asset.getDepositOutput(transactionReceipt) : null;
-            if (response != null && response.getValue1()) {
-                tr = new TransferResult(response.getValue1(), response.getValue2().get(0), response.getValue2().get(1));
-            }
-            return DataToolUtils.handleTransaction(transactionReceipt, tr);
-        } catch (Exception e) {
-            log.error("desposit failed:{}", e);
-            throw new OpenLedgerBaseException(ErrorCode.ASSET_DESIPOSIT_ERROR);
-        }
+//        try {
+//            List<String> addressList = genAddress(null, account, operatorAddress, contractAddress, relateAsset);
+//            List<byte[]> resultSign = OpenLedgerUtils.convertSignToByte(message, rs);
+//
+//            TransactionReceipt transactionReceipt = asset.deposit(
+//                    addressList,
+//                    amount,
+//                    genType(operationType),
+//                    genDetail(desc, subject),
+//                    resultSign);
+//            TransferResult tr = null;
+//            Tuple2<Boolean, List<BigInteger>> response = transactionReceipt.isStatusOK() ? asset.getDepositOutput(transactionReceipt) : null;
+//            if (response != null && response.getValue1()) {
+//                tr = new TransferResult(response.getValue1(), response.getValue2().get(0), response.getValue2().get(1));
+//            }
+//            return DataToolUtils.handleTransaction(transactionReceipt, tr);
+//        } catch (Exception e) {
+//            log.error("desposit failed:{}", e);
+//            throw new OpenLedgerBaseException(ErrorCode.ASSET_DESIPOSIT_ERROR);
+//        }
+        return null;
     }
 
     /**
@@ -134,26 +135,27 @@ public class CurrencyService extends StandardAssetService<Currency> {
      * @throws OpenLedgerBaseException
      */
     public ResponseData<TransferResult> withdrawal(@NonNull String operatorAddress, @NonNull String account, @NonNull BigInteger amount, int operationType, String desc, String subject, String relateAsset, @NonNull byte[] message, @NonNull ECDSASignatureResult rs) throws OpenLedgerBaseException {
-        try {
-            List<String> addressList = genAddress(account, null, operatorAddress, contractAddress, relateAsset);
-            List<byte[]> resultSign = OpenLedgerUtils.convertSignToByte(message, rs);
-
-            TransactionReceipt transactionReceipt = asset.withdrawal(
-                    addressList,
-                    amount,
-                    genType(operationType),
-                    genDetail(desc, subject),
-                    resultSign);
-            TransferResult tr = null;
-            Tuple2<Boolean, List<BigInteger>> response = transactionReceipt.isStatusOK() ? asset.getWithdrawalOutput(transactionReceipt) : null;
-            if (response != null && response.getValue1()) {
-                tr = new TransferResult(response.getValue1(), response.getValue2().get(0), response.getValue2().get(1));
-            }
-            return DataToolUtils.handleTransaction(transactionReceipt, tr);
-        } catch (Exception e) {
-            log.error("withdrawal failed:{}", e);
-            throw new OpenLedgerBaseException(ErrorCode.ASSET_WITHDRAWAL_ERROR);
-        }
+//        try {
+//            List<String> addressList = genAddress(account, null, operatorAddress, contractAddress, relateAsset);
+//            List<byte[]> resultSign = OpenLedgerUtils.convertSignToByte(message, rs);
+//
+//            TransactionReceipt transactionReceipt = asset.withdrawal(
+//                    addressList,
+//                    amount,
+//                    genType(operationType),
+//                    genDetail(desc, subject),
+//                    resultSign);
+//            TransferResult tr = null;
+//            Tuple2<Boolean, List<BigInteger>> response = transactionReceipt.isStatusOK() ? asset.getWithdrawalOutput(transactionReceipt) : null;
+//            if (response != null && response.getValue1()) {
+//                tr = new TransferResult(response.getValue1(), response.getValue2().get(0), response.getValue2().get(1));
+//            }
+//            return DataToolUtils.handleTransaction(transactionReceipt, tr);
+//        } catch (Exception e) {
+//            log.error("withdrawal failed:{}", e);
+//            throw new OpenLedgerBaseException(ErrorCode.ASSET_WITHDRAWAL_ERROR);
+//        }
+        return null;
     }
 
 
@@ -173,26 +175,27 @@ public class CurrencyService extends StandardAssetService<Currency> {
      * @throws OpenLedgerBaseException
      */
     public ResponseData<TransferResult> transfer(@NonNull String operatorAddress, @NonNull String fromAddress, @NonNull String toAddress, @NonNull BigInteger amount, int operationType, String desc, String subject, String relateAsset, @NonNull byte[] message, @NonNull ECDSASignatureResult rs) throws OpenLedgerBaseException {
-        try {
-            List<String> addressList = genAddress(fromAddress, toAddress, operatorAddress, contractAddress, relateAsset);
-            List<byte[]> resultSign = OpenLedgerUtils.convertSignToByte(message, rs);
-
-            TransactionReceipt transactionReceipt = asset.transfer(
-                    addressList,
-                    amount,
-                    genType(operationType),
-                    genDetail(desc, subject),
-                    resultSign);
-            TransferResult tr = null;
-            Tuple2<Boolean, List<BigInteger>> response = transactionReceipt.isStatusOK() ? asset.getTransferOutput(transactionReceipt) : null;
-            if (response != null && response.getValue1()) {
-                tr = new TransferResult(response.getValue1(), response.getValue2().get(0), response.getValue2().get(1));
-            }
-            return DataToolUtils.handleTransaction(transactionReceipt, tr);
-        } catch (Exception e) {
-            log.error("transfer failed:{}", e);
-            throw new OpenLedgerBaseException(ErrorCode.ASSET_TRANSFER_ERROR);
-        }
+//        try {
+//            List<String> addressList = genAddress(fromAddress, toAddress, operatorAddress, contractAddress, relateAsset);
+//            List<byte[]> resultSign = OpenLedgerUtils.convertSignToByte(message, rs);
+//
+//            TransactionReceipt transactionReceipt = asset.transfer(
+//                    addressList,
+//                    amount,
+//                    genType(operationType),
+//                    genDetail(desc, subject),
+//                    resultSign);
+//            TransferResult tr = null;
+//            Tuple2<Boolean, List<BigInteger>> response = transactionReceipt.isStatusOK() ? asset.getTransferOutput(transactionReceipt) : null;
+//            if (response != null && response.getValue1()) {
+//                tr = new TransferResult(response.getValue1(), response.getValue2().get(0), response.getValue2().get(1));
+//            }
+//            return DataToolUtils.handleTransaction(transactionReceipt, tr);
+//        } catch (Exception e) {
+//            log.error("transfer failed:{}", e);
+//            throw new OpenLedgerBaseException(ErrorCode.ASSET_TRANSFER_ERROR);
+//        }
+        return null;
     }
 
 

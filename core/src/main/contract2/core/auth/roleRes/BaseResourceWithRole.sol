@@ -17,13 +17,14 @@ contract BaseResourceWithRole is BaseResource {
     constructor(address account) public BaseResource(account) {
     }
 
-    function createRole(string roleName, bytes32[4] sign) public holderNotNull {
+    function createRole(string roleName, bytes32[4] sign) public holderNotNull returns (bool){
         require(roles[roleName] == address(0), "role has been create");
-        address role = IdInterface(holder).createRole(roleName.strConcat(address(this).addressToString()), sign);
+        address role = IdInterface(holder).createRole(roleName);
         roles[roleName] = role;
-        address resGroup = IdInterface(holder).createResourceGroup(sign);
+        address resGroup = IdInterface(holder).createResourceGroup();
         resourceGroup[roleName] = resGroup;
-        require(IdInterface(holder).addResGroupToRole(role, resGroup, sign), "create role failed");
+        require(IdInterface(holder).addResGroupToRole(role, resGroup), "create role failed");
+        return true;
     }
 
     function grantId(string roleName, address _external, bytes32[4] sign) public holderNotNull returns (bool) {

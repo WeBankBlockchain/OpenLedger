@@ -4,7 +4,11 @@ pragma experimental ABIEncoderV2;
 contract IdInterface {
     function createRole(string name, bytes32[4] sign) public returns (address);
 
+    function createRole(string name) external returns (address);
+
     function createResourceGroup(bytes32[4] sign) public returns (address);
+
+    function createResourceGroup() external returns (address);
 
     function addIdToRole(address idAddr, address roleAddr, bytes32[4] sign) public returns (bool);
 
@@ -20,11 +24,13 @@ contract IdInterface {
 
     function addResGroupToRole(address role, address resourceGroup, bytes32[4] sign) public returns (bool);
 
+    function addResGroupToRole(address role, address resourceGroup) external returns (bool);
+
     function grant(address resource, address allowId, string operation, bytes detail, bytes32[4] sign) public returns (bool);
 
     function revoke(address resource, address allowId, string operation, bytes detail, bytes32[4] sign) public returns (bool);
 
-    function check(address[] addressList, string operation,bytes detail) public view returns (bool);
+    function check(address[] addressList, string operation, bytes detail) public view returns (bool);
 
     function setExternalAddress(address _external) public;
 
