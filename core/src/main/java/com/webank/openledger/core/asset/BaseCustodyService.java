@@ -30,7 +30,9 @@ import com.webank.openledger.core.response.ResponseData;
 import com.webank.openledger.utils.JsonHelper;
 import com.webank.openledger.utils.OpenLedgerUtils;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.fisco.bcos.sdk.abi.datatypes.Address;
 import org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple2;
@@ -42,6 +44,7 @@ import org.fisco.bcos.sdk.model.TransactionReceipt;
 import org.fisco.bcos.sdk.transaction.model.exception.ContractException;
 
 @Slf4j
+@Getter@Setter
 public class BaseCustodyService<T extends Contract> {
     /**
      * contract object
@@ -346,7 +349,7 @@ public class BaseCustodyService<T extends Contract> {
      * @return asset object
      * @throws OpenLedgerBaseException
      */
-    public Note getNoteDetail(BigInteger noteNo, String account, @NonNull byte[] message, @NonNull ECDSASignatureResult rs) throws OpenLedgerBaseException {
+    public Note getNoteDetail(BigInteger noteNo,  @NonNull byte[] message, @NonNull ECDSASignatureResult rs) throws OpenLedgerBaseException {
         List<byte[]> resultSign = OpenLedgerUtils.convertSignToByte(message, rs);
         try {
             Tuple4<List<String>, List<BigInteger>, List<BigInteger>, BigInteger> response = custody.getNoteDetail(assetAddress,noteNo, resultSign);
@@ -380,11 +383,11 @@ public class BaseCustodyService<T extends Contract> {
      * @return asset list
      * @throws OpenLedgerBaseException
      */
-    public List<BigInteger> getAccountNotes(BigInteger start, BigInteger end, @NonNull byte[] message, @NonNull ECDSASignatureResult rs) throws OpenLedgerBaseException {
+    public List<BigInteger> getAccountNotes(String account,BigInteger start, BigInteger end, @NonNull byte[] message, @NonNull ECDSASignatureResult rs) throws OpenLedgerBaseException {
         List<byte[]> resultSign = OpenLedgerUtils.convertSignToByte(message, rs);
 
         try {
-            List<BigInteger> notes = custody.getAccountNotes(assetAddress, start, end, resultSign);
+            List<BigInteger> notes = custody.getAccountNotes(account, start, end, resultSign);
             return notes;
         } catch (ContractException e) {
             log.error("getAccountNotes failed:{}", e);
@@ -404,7 +407,7 @@ public class BaseCustodyService<T extends Contract> {
      * @return Whether the operation was successful
      * @throws OpenLedgerBaseException
      */
-    public ResponseData<Boolean> updateNoteNo(BigInteger oldNoteNo, BigInteger newNoteNo, String account, @NonNull byte[] message, @NonNull ECDSASignatureResult rs) throws OpenLedgerBaseException {
+    public ResponseData<Boolean> updateNoteNo(BigInteger oldNoteNo, BigInteger newNoteNo, @NonNull byte[] message, @NonNull ECDSASignatureResult rs) throws OpenLedgerBaseException {
         List<byte[]> resultSign = OpenLedgerUtils.convertSignToByte(message, rs);
 
         TransactionReceipt transactionReceipt = null;

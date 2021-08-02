@@ -19,7 +19,8 @@ package com.webank.openledger.core.project;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import com.webank.openledger.contractsbak.Project;
+import com.webank.openledger.contracts.AclManager;
+import com.webank.openledger.contracts.Project;
 import com.webank.openledger.core.AccountImplTest;
 import com.webank.openledger.core.Blockchain;
 import com.webank.openledger.core.constant.ErrorCode;
@@ -29,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.fisco.bcos.sdk.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.crypto.keypair.CryptoKeyPair;
 import org.fisco.bcos.sdk.model.CryptoType;
+import org.fisco.bcos.sdk.model.TransactionReceipt;
 import org.fisco.bcos.sdk.transaction.model.exception.ContractException;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,7 +45,7 @@ public class ProjectServiceTest {
     private static final String ORG_1_USER_PRI_KEY = "0x1c0362fb21ea3cc00dd2dbc0307232cc50782fb355bb507f5f9312d0e10db618";
     private static final String ORG_1_USER_ADDR = "0xa1ebac1c01725ef092f0a2d7192c6ab37106cc86";
     Blockchain blockchain;
-    String projectAddr = "0x22efd5faf924bdc1be1a5e1c0458f1332cc85780";
+    String projectAddr = "0xa9a1eaa6d13c15db6e914638e01856335aafc6d0";
     String accountManagerAddr = "0xfb78c1760adbb93dbf736d5555c977100da06adf";
     String authManagerAddr = "null";
     String authCenterAddr = "0xa91f545c888cb8fe03a99be792c0ea80fe4400ff";
@@ -91,7 +93,9 @@ public class ProjectServiceTest {
                 rsp.getResult().get(3),
                 rsp.getResult().get(4),
                 rsp.getResult().get(5));
+        log.info("aclMagaer:"+projectService.getContractIns().getAclManager());
         testCreateOrganization();
+
     }
 
     @Test
@@ -100,6 +104,7 @@ public class ProjectServiceTest {
         log.info("testCreateOrganization:{}, {}", ret.getResult(), ret.getErrMsg());
         assertEquals(ErrorCode.SUCCESS.getCode(), ret.getErrorCode().intValue());
         assertTrue(!ret.getResult().isEmpty());
+
     }
 
     @Test

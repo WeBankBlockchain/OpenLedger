@@ -22,8 +22,8 @@ contract StandardAsset is BaseAsset {
     event WithDrawal(address account, uint256 amount);
     event InsertResult(uint256 termNo, uint256 seqNo, address from, address to, uint256 amount);
 
-    modifier onlyOwner(address account){
-        require(containsAccount(account), "StandardAsset:required owner account called!");
+    modifier onlyOwner(address caller){
+        require(containsAccount(caller), "StandardAsset:required owner account called!");
         _;
     }
     modifier verifyTxArgs(uint256 amount, bytes[] detailList) {
@@ -71,13 +71,12 @@ contract StandardAsset is BaseAsset {
     function deposit(address[] transactionAddress, uint256 amount, int[] typeList, bytes[] detailList)
     public
     onlyManager
-    onlyOwner(transactionAddress[2])
-    onlyAccountNormal(transactionAddress[2])
+    onlyOwner(transactionAddress[3])
+//    onlyAccountNormal(transactionAddress[3])
     returns (bool, uint[2])
     {
-        transactionAddress = checkAuth(transactionAddress, amount, typeList, detailList, "deposit");
+        verifyTxArgsFunc(amount, detailList);
         address account = transactionAddress[3];
-        require(containsAccount(account), "the account has not been open");
         balances[account] = balances[account].add(amount);
 
         int[] memory typeDetail = new int[](2);
@@ -91,29 +90,16 @@ contract StandardAsset is BaseAsset {
         return (isWrite, result);
     }
 
-    function checkAuth(address[] transactionAddress, uint256 amount, int[] typeList, bytes[] detailList, string key)
-    onlyOwner(transactionAddress[2])
-    onlyOwner(transactionAddress[3])
-    onlyAccountNormal(transactionAddress[2])
-    onlyAccountNormal(transactionAddress[3])
-    internal
-    returns (address[]){
-        verifyTxArgsFunc(amount, detailList);
-        return transactionAddress;
-    }
-
 
     function withdrawal(address[] transactionAddress, uint256 amount, int[] typeList, bytes[] detailList)
     public
     onlyManager
     onlyOwner(transactionAddress[2])
-    onlyAccountNormal(transactionAddress[2])
+//    onlyAccountNormal(transactionAddress[2])
     returns (bool, uint[2])
     {
-        transactionAddress = checkAuth(transactionAddress, amount, typeList, detailList, "withdrawal");
+        verifyTxArgsFunc(amount, detailList);
         address account = transactionAddress[2];
-        require(containsAccount(account), "the account has not been open");
-
         balances[account] = balances[account].sub(amount);
         int[] memory typeDetail = new int[](2);
         typeDetail[0] = TRANSACTION_TYPE_SPEND;
@@ -132,7 +118,8 @@ contract StandardAsset is BaseAsset {
     onlyManager
     returns (bool, uint[2])
     {
-        transactionAddress = checkAuth(transactionAddress, amount, typeList, detailList, "transfer");
+        verifyTxArgsFunc(amount, detailList);
+
         balances[transactionAddress[2]] = balances[transactionAddress[2]].sub(amount);
         balances[transactionAddress[3]] = balances[transactionAddress[3]].add(amount);
 

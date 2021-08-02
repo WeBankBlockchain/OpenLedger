@@ -78,11 +78,9 @@ contract NonFungibleAsset is BaseAsset {
     }
 
 
-    function getNoteDetail(uint256 noteNo, address account)
+    function getNoteDetail(uint256 noteNo)
     public
     onlyManager
-    onlyAccountNormal(account)
-    existAccount(account)
     constant
     returns (address[], uint256[], uint[], uint8){
         address[] memory addressList = new address[](2);
@@ -90,8 +88,6 @@ contract NonFungibleAsset is BaseAsset {
         uint[] memory uintList = new uint[](2);
         uint8 noteStatus;
         (addressList, uint256List, uintList, noteStatus) = assetStorage.getNote(noteNo);
-        addressList[0] = addressList[0];
-        addressList[1] = addressList[1];
 
         return (addressList, uint256List, uintList, noteStatus);
     }
@@ -120,8 +116,6 @@ contract NonFungibleAsset is BaseAsset {
     }
 
     function checkTransfer(address[] transactionAddress, uint[] noteNos)
-    onlyAccountNormal(transactionAddress[2])
-    onlyAccountNormal(transactionAddress[3])
     existAccount(transactionAddress[2])
     existAccount(transactionAddress[3])
     internal {
@@ -135,15 +129,13 @@ contract NonFungibleAsset is BaseAsset {
 
     function accountHoldNote(address account, uint256 noteNo)
     onlyManager
-    onlyAccountNormal(account)
-    existAccount(account)
     public
     constant
     returns (bool isContain){
         isContain = assetStorage.accountHoldNote(account, noteNo);
     }
 
-    function getAccountNotes(address account, uint256 start, uint256 end) onlyManager existAccount(account) public constant returns (uint256[]){
+    function getAccountNotes(address account, uint256 start, uint256 end) onlyManager  public constant returns (uint256[]){
         require(start < end, "require start < end");
         return assetStorage.getNoteByAccount(account, start, end);
     }
@@ -154,9 +146,7 @@ contract NonFungibleAsset is BaseAsset {
 
 
     function updateNoteNo(uint256 oldNoteNo, uint256 newNoteNo, address account)
-    onlyAccountNormal(account)
     onlyManager
-    existAccount(account)
     public
     returns (bool isUpdate){
         require(assetStorage.isExistNote(oldNoteNo), "note doesn't exist!");
@@ -167,9 +157,7 @@ contract NonFungibleAsset is BaseAsset {
     }
 
     function updateNoteProperties(uint256 noteNo, bytes[] keys, bytes[] values, address account)
-    onlyAccountNormal(account)
     onlyManager
-    existAccount(account)
     public
     returns (bytes[] noteKeys, bytes[] noteValues){
         checkUpdateNoteNoAuth(noteNo, keys, values, account);
@@ -179,8 +167,6 @@ contract NonFungibleAsset is BaseAsset {
     function getNoteProperties(uint256 noteNo, address account)
     public
     onlyManager
-    existAccount(account)
-    onlyAccountNormal(account)
     constant returns (bytes[] noteKeys, bytes[] noteValues){
         require(assetStorage.isExistNote(noteNo), "note doesn't exist!");
         require(assetStorage.checkIssuer(noteNo, account), "Forbidden getNoteProperties");
@@ -188,9 +174,6 @@ contract NonFungibleAsset is BaseAsset {
     }
 
     function updateNoteBatch(uint256 batchNo, uint date, bool isEffectiveDate, address account)
-    onlyAccountNormal(account)
-    onlyAccountNormal(account)
-    existAccount(account)
     onlyManager
     public
     returns (bool isUpdate){
@@ -206,10 +189,7 @@ contract NonFungibleAsset is BaseAsset {
     }
 
     function freezeNote(uint256 noteNo, address account)
-    onlyAccountNormal(account)
     onlyManager
-    onlyAccountNormal(account)
-    existAccount(account)
     public
     returns (bool isForzen){
         require(assetStorage.isExistNote(noteNo), "note doesn't exist!");
@@ -223,10 +203,7 @@ contract NonFungibleAsset is BaseAsset {
     }
 
     function unfreezeNote(uint256 noteNo, address account)
-    onlyAccountNormal(account)
     onlyManager
-    onlyAccountNormal(account)
-    existAccount(account)
     public
     returns (uint8){
         require(assetStorage.isExistNote(noteNo), "note doesn't exist!");

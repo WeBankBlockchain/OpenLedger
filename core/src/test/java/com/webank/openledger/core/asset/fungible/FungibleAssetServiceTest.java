@@ -23,6 +23,7 @@ import java.util.List;
 import com.webank.openledger.contractsbak.Account;
 import com.webank.openledger.contractsbak.AuthCenter;
 import com.webank.openledger.contracts.Organization;
+import com.webank.openledger.contractsbak.FungibleAsset;
 import com.webank.openledger.core.AccountImplTest;
 import com.webank.openledger.core.Blockchain;
 import com.webank.openledger.core.account.AccountService;
@@ -35,6 +36,7 @@ import com.webank.openledger.core.auth.AuthCenterService;
 import com.webank.openledger.core.constant.ErrorCode;
 import com.webank.openledger.core.exception.OpenLedgerBaseException;
 import com.webank.openledger.core.org.OrganizationService;
+import com.webank.openledger.core.response.DataToolUtils;
 import com.webank.openledger.core.response.ResponseData;
 import com.webank.openledger.utils.OpenLedgerUtils;
 
@@ -44,6 +46,7 @@ import org.fisco.bcos.sdk.crypto.CryptoSuite;
 import org.fisco.bcos.sdk.crypto.keypair.CryptoKeyPair;
 import org.fisco.bcos.sdk.crypto.signature.ECDSASignatureResult;
 import org.fisco.bcos.sdk.model.CryptoType;
+import org.fisco.bcos.sdk.model.TransactionReceipt;
 import org.fisco.bcos.sdk.transaction.model.exception.ContractException;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,13 +67,13 @@ public class FungibleAssetServiceTest {
     CryptoKeyPair user;
     private FungibleAssetService fungibleAssetService;
     private AuthCenterService<AuthCenter> authCenterSDK;
-    private BaseCustodyService<Organization> custody;
+    private OrganizationService custody;
     private AccountService holder;
-    private String custodyContractAddress = "0x9857ea5d68fb1a7888d24c27e66f65b0cbded57b";
-    private String holderContractAddress = "0x9857ea5d68fb1a7888d24c27e66f65b0cbded57b";
-    private String assetAddress = "";
-    private String USER_ACCOUNT1="";
-    private String USER_ACCOUNT2="";
+    private String custodyContractAddress = "0x098e612559058f70e2acbf95549eab264133ff2d";
+    private String holderContractAddress = "0x098e612559058f70e2acbf95549eab264133ff2d";
+    private String assetAddress = "0x64d6f547a787803e39b8bfa29656d8ac47633118";
+    private String USER_ACCOUNT1 = "0x8445a5599fb313522d3355be6f1974c9b6b5bf6a";
+    private String USER_ACCOUNT2 = "0x8445a5599fb313522d3355be6f1974c9b6b5bf6a";
 
     @Before
     public void init() {
@@ -101,7 +104,6 @@ public class FungibleAssetServiceTest {
             this.holder = new AccountService(blockchain, custodyContractAddress, assetAddress);
         }
     }
-
 
 
 //
@@ -136,37 +138,38 @@ public class FungibleAssetServiceTest {
 //    }
 
     @Test
-    public void openAccount() throws OpenLedgerBaseException, ContractException {
-        String account =USER_ACCOUNT1;
+    public void openAccount() throws OpenLedgerBaseException, ContractException, UnsupportedEncodingException {
+        String account = custodyContractAddress;
 //        BigInteger nonce = authCenterSDK.getNonceFromAccount(operator.getAddress()).getResult();
-        BigInteger nonce =new BigInteger("1");
+        BigInteger nonce = new BigInteger("1");
         byte[] result = new byte[0];
         result = OpenLedgerUtils.concatByte(result, OpenLedgerUtils.convertStringToAddressByte(account));
         byte[] messageOpenAccount = StandardAssetService.computeOpenAccountMsg(account, nonce);
 
-        ResponseData<Boolean> responseData = custody.openAccount(account, messageOpenAccount, OpenLedgerUtils.sign(operator, messageOpenAccount));
+        ResponseData<Boolean> responseData = custody.openAccount(account, messageOpenAccount, OpenLedgerUtils.sign(user, messageOpenAccount));
         log.info(responseData.getErrMsg());
         assertTrue(responseData.getResult());
+
     }
 
     @Test
     public void deposit() throws OpenLedgerBaseException, UnsupportedEncodingException {
         // 交易参数
-        String account = USER_ACCOUNT1;
+        String account = custodyContractAddress;
         String operatorAddress = USER_ACCOUNT1;
         BigInteger amount = BigInteger.valueOf(100);
         String detail = "test";
         //交易序列号 从authcenter获取
 //        BigInteger nonce = authCenterSDK.getNonceFromAccount(admin.getAddress()).getResult();
-        BigInteger nonce =new BigInteger("1");
+        BigInteger nonce = new BigInteger("1");
 
         List<String> addressList = StandardAssetService.genAddress(null, account, operatorAddress, assetAddress, null);
         byte[] message = StandardAssetService.computeTxMsg(addressList, amount, StandardAssetService.genType(1), StandardAssetService.genDetail(detail, null), nonce);
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(user, message);
 
         ResponseData<TransferResult> responseData = custody.deposit(operatorAddress, account, amount, 1, detail, message, sign);
         log.info(responseData.getErrMsg());
-        assertTrue(responseData.getResult() != null && responseData.getResult().getIsSuccees());
+        assertTrue(responseData.getResult().getIsSuccees());
         log.info(responseData.getResult().toString());
     }
 
@@ -185,7 +188,7 @@ public class FungibleAssetServiceTest {
         List<String> addressList = StandardAssetService.genAddress(account, null, operatorAddress, assetAddress, null);
 
         byte[] message = StandardAssetService.computeTxMsg(addressList, amount, StandardAssetService.genType(2), StandardAssetService.genDetail(detail, null), nonce);
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(user, message);
 
         ResponseData<TransferResult> responseData = custody.withdrawal(operatorAddress, account, amount, 2, detail, message, sign);
 
@@ -197,7 +200,7 @@ public class FungibleAssetServiceTest {
     @Test
     public void getBalance() throws OpenLedgerBaseException {
         // 交易参数
-        String fromAddress = user.getAddress();
+        String fromAddress = custodyContractAddress;
 //        BigInteger nonce = authCenterSDK.getNonceFromAccount(user.getAddress()).getResult();
         BigInteger nonce = new BigInteger("1");
         System.out.println(custody.getBalance(fromAddress, OpenLedgerUtils.computeKeccak256HashFromBigInteger(nonce), OpenLedgerUtils.sign(user, OpenLedgerUtils.computeKeccak256HashFromBigInteger(nonce))));
@@ -208,16 +211,16 @@ public class FungibleAssetServiceTest {
     public void transfer() throws OpenLedgerBaseException, UnsupportedEncodingException {
         log.info(admin.getAddress());
         // 交易参数
-        String fromAddress = USER_ACCOUNT1;
+        String fromAddress = custodyContractAddress;
         String toAddress = USER_ACCOUNT2;
-        String operatorAddress =USER_ACCOUNT1;
+        String operatorAddress = USER_ACCOUNT1;
         BigInteger amount = BigInteger.valueOf(10);
         String detail = "test";
         //交易序列号 从authcenter获取
 //        BigInteger nonce = authCenterSDK.getNonceFromAccount(operatorAddress).getResult();
         BigInteger nonce = new BigInteger("1");
         byte[] message = StandardAssetService.computeTxMsg(StandardAssetService.genAddress(fromAddress, toAddress, operatorAddress, assetAddress, null), amount, StandardAssetService.genType(3), StandardAssetService.genDetail(detail, null), nonce);
-        ResponseData<TransferResult> responseData = holder.transferFungibleAsset(operatorAddress, fromAddress, toAddress, amount, 3, detail, message, OpenLedgerUtils.sign(user, message));
+        ResponseData<TransferResult> responseData = holder.transferFungibleAsset(operatorAddress, fromAddress, toAddress, amount, 3, detail, message, OpenLedgerUtils.sign(admin, message));
         log.info(responseData.getErrMsg());
         assertTrue(responseData.getResult() != null && responseData.getResult().getIsSuccees());
         log.info(responseData.getResult().toString());
@@ -288,7 +291,7 @@ public class FungibleAssetServiceTest {
         assertTrue(recordEntities.size() >= 1);
 
         Condition condition4 = new Condition(BigInteger.valueOf(0), BigInteger.valueOf(0), account1, account2);
-        recordEntities =custody.queryFungibleByCustody(condition4, message, rs);
+        recordEntities = custody.queryFungibleByCustody(condition4, message, rs);
         assertNotNull(recordEntities);
         recordEntities.stream().forEach(item -> System.out.println(item));
         System.out.println("=====================================");
@@ -339,7 +342,7 @@ public class FungibleAssetServiceTest {
         ECDSASignatureResult rs = OpenLedgerUtils.sign(admin, message);
         //组织管理者运行查询全部
         Condition condition10 = new Condition(rightTermNo, rightSeq, null, null);
-        List<RecordEntity> recordEntities =custody.queryFungibleByCustody(condition10, message, rs);
+        List<RecordEntity> recordEntities = custody.queryFungibleByCustody(condition10, message, rs);
         assertNotNull(recordEntities);
         recordEntities.stream().forEach(item -> System.out.println(item));
         System.out.println("=====================================");

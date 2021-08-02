@@ -39,7 +39,7 @@ contract Role {
         accMap[account] = false;
     }
 
-    function existAccount(address account) public onlyManager  view returns(bool){
+    function existAccount(address account) public   view returns(bool){
         return accMap[account];
     }
 

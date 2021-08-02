@@ -119,8 +119,8 @@ contract NonFungibleAssetManager {
         return NonFungibleAsset(asset).issue(transactionAddress, uint256Args, stringValueList);
     }
 
-    function getNoteDetail(address asset, uint256 noteNo) onlyCustodian(asset) public returns (address[], uint256[], uint[], uint8){
-        return NonFungibleAsset(asset).getNoteDetail(noteNo, msg.sender);
+    function getNoteDetail(address asset, uint256 noteNo) onlyCustodian(asset) public constant returns (address[], uint256[], uint[], uint8){
+        return NonFungibleAsset(asset).getNoteDetail(noteNo);
     }
 
     function transfer(address asset, address[] transactionAddress, uint[] noteNos, bytes[] stringValueList) onlyAccountHolder(asset) public returns (bool, uint[]){

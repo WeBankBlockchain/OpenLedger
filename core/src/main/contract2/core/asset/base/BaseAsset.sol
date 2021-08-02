@@ -34,7 +34,7 @@ contract BaseAsset {
 
     // account is BaseAccountHolder
     function addAccount(address account) public returns (bool){
-        require(holders.contains(account), "BaseAsset:account has been exist!");
+        require(!holders.contains(account), "BaseAsset:account has been exist!");
         holders.insert(account);
         return true;
     }

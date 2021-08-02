@@ -23,7 +23,9 @@ import com.webank.openledger.core.response.DataToolUtils;
 import com.webank.openledger.core.response.ResponseData;
 import com.webank.openledger.utils.OpenLedgerUtils;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.fisco.bcos.sdk.abi.datatypes.Address;
 import org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple2;
@@ -33,6 +35,8 @@ import org.fisco.bcos.sdk.model.TransactionReceipt;
 import org.fisco.bcos.sdk.transaction.model.exception.ContractException;
 
 @Slf4j
+@Setter
+@Getter
 public class AccountHolderService<T extends Contract> {
     /**
      * contract object

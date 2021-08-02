@@ -24,7 +24,7 @@ contract IdInterface {
 
     function addResGroupToRole(address role, address resourceGroup, bytes32[4] sign) public returns (bool);
 
-    function addResGroupToRole(address role, address resourceGroup) external returns (bool);
+    function addResGroupToRole(address role, address resourceGroup) public returns (bool);
 
     function grant(address resource, address allowId, string operation, bytes detail, bytes32[4] sign) public returns (bool);
 
@@ -41,5 +41,7 @@ contract IdInterface {
     function getNonce() public view returns (uint256);
 
     function getResGroupByRole(address role) public view returns (address);
+
+    function addIdToRoleByRole(address idAddr, address roleAddr, address callRole, bytes32[4] sign) public returns (bool);
 
 }

@@ -79,7 +79,7 @@ contract AccountManager is WEBasicAccount {
     returns (bool, address)
     {
         BaseAccountHolder account  = new BaseAccountHolder(project,holderId,address(this),msg.sender);
-        accounts.insert(msg.sender,address(account));
+        accounts.insert(address(account),msg.sender);
         return (true, account);
     }
 
