@@ -29,8 +29,18 @@ contract BaseResourceWithRole is BaseResource {
 
     function grantId(string roleName, address _external, bytes32[4] sign) public holderNotNull returns (bool) {
         require(roles[roleName] != address(0), "role has not  been create");
+        require(IdInterface(holder).getAcl() != address(0), "acl can not be null!");
         address allowId = IAclManager(IdInterface(holder).getAcl()).getIdByExternal(_external);
+        require(allowId != address(0), "required allowId != 0x0");
         return IdInterface(holder).addIdToRole(allowId, roles[roleName], sign);
+    }
+
+    function grantId(string roleName, address _external, address callerRole, bytes32[4] sign) public holderNotNull returns (bool) {
+        require(roles[roleName] != address(0), "role has not  been create");
+        require(IdInterface(holder).getAcl() != address(0), "acl can not be null!");
+        address allowId = IAclManager(IdInterface(holder).getAcl()).getIdByExternal(_external);
+        require(allowId != address(0), "required allowId != 0x0");
+        return IdInterface(holder).addIdToRoleByRole(allowId, roles[roleName],callerRole, sign);
     }
 
     function revokeId(string roleName, address _external, bytes32[4] sign) public holderNotNull returns (bool) {

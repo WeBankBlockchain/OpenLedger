@@ -22,7 +22,7 @@ contract ResourceGroup {
     }
 
     function addResource(address resource, string operation) public onlyManager {
-        require(!(resDetailAndOperMap[keccak256(resource)]).contains(bytes(operation)), "Resource: has been added");
+        require(!(resDetailAndOperMap[keccak256(resource)]).contains(bytes(operation)), "Resource: has been added ".strConcat(operation));
         resDetailAndOperMap[keccak256(resource)].insert(bytes(operation));
     }
 

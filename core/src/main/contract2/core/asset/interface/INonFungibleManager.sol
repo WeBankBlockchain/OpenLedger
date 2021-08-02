@@ -21,7 +21,7 @@ contract INonFungibleManager  {
 
     function issue(address asset, address[] transactionAddress, uint256[] uint256Args, bytes[] stringValueList)  public returns (uint256, uint256[], uint[]);
 
-    function getNoteDetail(address asset, uint256 noteNo)  public returns (address[], uint256[], uint[], uint8);
+    function getNoteDetail(address asset,uint256 noteNo)  public view returns (address[], uint256[], uint[], uint8);
 
     function transfer(address asset, address[] transactionAddress, uint[] noteNos, bytes[] stringValueList) public returns (bool, uint[]);
 

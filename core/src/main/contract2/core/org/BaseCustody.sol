@@ -142,7 +142,7 @@ contract BaseCustody {
     onlyMember(sign, "withdrawal", asset.addr2bytes())
     public
     returns (bool, uint[2]){
-        return assetManager.deposit(asset, transactionAddress, amount, typeList, detailList);
+        return assetManager.withdrawal(asset, transactionAddress, amount, typeList, detailList);
     }
 
 

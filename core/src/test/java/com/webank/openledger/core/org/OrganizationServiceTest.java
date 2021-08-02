@@ -63,7 +63,7 @@ public class OrganizationServiceTest {
 
 
     //组织org
-    String org1Addr = "0xd2ec25c92f0b5a181295ac3448ea559f44a6e725";
+    String org1Addr = "0xc638ccb69e8f0c176c0b04c347d5b0d842ed34e6";
     String org2Addr = "0x0";
     private OrganizationService orgService;
     private AuthCenterService<AuthCenter> authCenterService;
@@ -104,17 +104,20 @@ public class OrganizationServiceTest {
         //账户外部地址
         String externalAccount = "0x9c4269b93bab5a83565279f897df031c88a86f79";
         String role = "admin";
-        log.info("admin"+admin.getAddress());
+        log.info("admin" + admin.getAddress());
         // 组织管理员公私钥对
 //        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
-        BigInteger nonce=new BigInteger("1");
+        BigInteger nonce = new BigInteger("1");
         byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(externalAccount), role.getBytes(),
                 OpenLedgerUtils.getBytes32(nonce.toByteArray()));
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
 
         ECDSASignatureResult sign = OpenLedgerUtils.sign(admin, message);
-        ResponseData<Boolean> ret = orgService.addAdmin(operator.getAddress(),message, sign);
+        ResponseData<Boolean> ret = orgService.addAdmin(operator.getAddress(), message, sign);
+        log.info(ret.getErrMsg());
         log.info("addAdmin result:{}", ret.getResult());
+        testAddMember();
+        testCreateAsset();
     }
 
     @Test
@@ -130,7 +133,9 @@ public class OrganizationServiceTest {
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
 
         ECDSASignatureResult sign = OpenLedgerUtils.sign(admin, message);
-        ResponseData<Boolean> ret = orgService.removeAdmin(user.getAddress(), message, sign);
+        ResponseData<Boolean> ret = orgService.removeAdmin(operator.getAddress(), message, sign);
+        log.info(ret.getErrMsg());
+
         log.info("addAdmin result:{}", ret.getResult());
     }
 
@@ -149,7 +154,9 @@ public class OrganizationServiceTest {
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
 
         ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
-        ResponseData<Boolean> ret = orgService.addMember(externalAccount,message, sign);
+        ResponseData<Boolean> ret = orgService.addMember(user.getAddress(),message, sign);
+        log.info(ret.getErrMsg());
+
         log.info("addMember result:{}", ret.getResult());
     }
 
@@ -168,6 +175,8 @@ public class OrganizationServiceTest {
         ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
         ResponseData<Boolean> ret = orgService.removeAdmin(externalAccount, message, sign);
         log.info("addAdmin result:{}", ret.getResult());
+        log.info(ret.getErrMsg());
+
     }
 
 
@@ -175,6 +184,7 @@ public class OrganizationServiceTest {
     public void testCreateAccount() throws ContractException {
         HashMap<String, String> kvMap = new HashMap<>();
 //        kvMap.put("name", "tom"); //need add name to KeyType
+        String externalAccount = "0x9c4269b93bab5a83565379f897df031c88a16f76";
 
         List<byte[]> keyList = new ArrayList<>();
         List<byte[]> valueList = new ArrayList<>();
@@ -197,9 +207,9 @@ public class OrganizationServiceTest {
                 OpenLedgerUtils.getBytes32(nonce.toByteArray()));
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
 
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(admin, message);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(user, message);
 
-        ResponseData<String> ret = this.orgService.createAccount(user.getAddress(), keyList, valueList, message, sign);
+        ResponseData<String> ret = this.orgService.createAccount(externalAccount, keyList, valueList, message, sign);
         log.info("createAccount ret:{}, {}", ret.getResult(), ret);
         assertTrue(!ret.getResult().isEmpty());
     }
@@ -209,14 +219,14 @@ public class OrganizationServiceTest {
 //        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
 //        log.info("freeze, get nonce:{}", nonce.intValue());
         BigInteger nonce = new BigInteger("1");
-
+        String account="0xd06f23387b3938f718abe4473a2a6673b52d0b0c";
         byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(ORG_1_USER_1_ADDR),
                 OpenLedgerUtils.getBytes32(nonce.toByteArray()));
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
 
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(admin, message);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(user, message);
 
-        ResponseData<Boolean> ret = this.orgService.freeze(user.getAddress(), message, sign);
+        ResponseData<Boolean> ret = this.orgService.freeze(account, message, sign);
         log.info("freeze ret:{}, {}", ret.getResult(), ret);
         assertTrue(ret.getResult());
     }
@@ -226,14 +236,15 @@ public class OrganizationServiceTest {
 //        BigInteger nonce = authCenterService.getNonceFromAccount(org1Admin.getCryptoKeyPair().getAddress()).getResult();
 //        log.info("unfreeze, get nonce:{}", nonce.intValue());
         BigInteger nonce = new BigInteger("1");
+        String account="0xd06f23387b3938f718abe4473a2a6673b52d0b0c";
 
         byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(ORG_1_USER_1_ADDR),
                 OpenLedgerUtils.getBytes32(nonce.toByteArray()));
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
 
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(user, message);
 
-        ResponseData<Boolean> ret = this.orgService.unfreeze(ORG_1_USER_1_ADDR, message, sign);
+        ResponseData<Boolean> ret = this.orgService.unfreeze(account, message, sign);
         log.info("unfreeze ret:{}, {}", ret.getResult(), ret);
         assertTrue(ret.getResult());
     }
@@ -276,7 +287,7 @@ public class OrganizationServiceTest {
 
     @Test
     public void testCreateAsset() {
-        String assetName = "test20210531112";
+        String assetName = "aaa120q9a";
         Boolean isFungible = false;
 //        BigInteger nonce = authCenterService.getNonceFromAccount(admin.getAddress()).getResult();
         BigInteger nonce = new BigInteger("1");

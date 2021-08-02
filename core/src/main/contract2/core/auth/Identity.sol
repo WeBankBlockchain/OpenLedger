@@ -51,9 +51,13 @@ contract Identity {
         _;
     }
 
-    modifier checkPermission(string operation, bytes32[4] sign){
+    modifier checkPermission(address roleAddress,string operation, bytes32[4] sign){
         bytes memory detail;
-        require(check(genAuthByTableArgs(address(this), sign), operation, detail), "Identity:Forbbiden ".strConcat(operation));
+        if(roleAddress==address(0)){
+            require(check(genAuthByTableArgs(address(this), sign), operation, detail), "Identity:Forbbiden ".strConcat(operation));
+        }else{
+            require(check(genAuthByTableArgs(address(this), sign), operation, detail)||check(genAuthByRoleArgs(roleAddress,address(this), sign), operation, detail), "Identity:Forbbiden ".strConcat(operation));
+        }
         _;
     }
 
@@ -74,47 +78,56 @@ contract Identity {
 
 
 
-    function createRole(string name, bytes32[4] sign) public checkPermission(DEFAULT_GRANT_VALUE, sign) returns (address){
+    function createRole(string name, bytes32[4] sign) public checkPermission(address(0),DEFAULT_GRANT_VALUE, sign) returns (address){
         Role role = new Role(name);
         rolesManage.insert(address(role));
         return address(role);
     }
 
     function createRole(string name) external returns (address){
+        require(IResource(msg.sender).getHolder() == address(this), "required holder call!");
         Role role = new Role(name);
         rolesManage.insert(address(role));
         return address(role);
     }
 
 
-    function createResourceGroup(bytes32[4] sign) public checkPermission(DEFAULT_GRANT_VALUE, sign) returns (address){
+    function createResourceGroup(bytes32[4] sign) public checkPermission(address(0),DEFAULT_GRANT_VALUE, sign) returns (address){
         ResourceGroup res = new ResourceGroup();
         resourceManage.insert(address(res));
         return address(res);
     }
 
-    function createResourceGroup() external  returns (address){
+    function createResourceGroup() external returns (address){
+        require(IResource(msg.sender).getHolder() == address(this), "required holder call!");
         ResourceGroup res = new ResourceGroup();
         resourceManage.insert(address(res));
         return address(res);
     }
 
-    function addIdToRole(address idAddr, address roleAddr, bytes32[4] sign) public checkPermission(DEFAULT_GRANT_VALUE, sign) returns (bool){
-        require(rolesManage.contains(roleAddr), "role is not exist!");
+    function addIdToRole(address idAddr, address roleAddr, bytes32[4] sign) public checkPermission(address(0),DEFAULT_GRANT_VALUE, sign) returns (bool){
+        require(rolesManage.contains(roleAddr), "Identity:role is not exist!");
         Role role = Role(roleAddr);
         role.addAccount(idAddr);
         return true;
     }
 
-    function removeIdFromRole(address idAddr, address roleAddr, bytes32[4] sign) public checkPermission(DEFAULT_REVOKE_VALUE, sign) returns (bool){
+    function addIdToRoleByRole(address idAddr, address roleAddr, address callRole,bytes32[4] sign) public checkPermission(callRole,DEFAULT_GRANT_VALUE, sign) returns (bool){
+        require(rolesManage.contains(roleAddr), "Identity:role is not exist!");
+        Role role = Role(roleAddr);
+        role.addAccount(idAddr);
+        return true;
+    }
+
+    function removeIdFromRole(address idAddr, address roleAddr, bytes32[4] sign) public checkPermission(roleAddr,DEFAULT_REVOKE_VALUE, sign) returns (bool){
         require(rolesManage.contains(roleAddr), "role is not exist!");
         Role role = Role(roleAddr);
         role.removeAccount(idAddr);
         return true;
     }
 
-    function addOperationToRes(address resourceGroup, address resource, string[] operations, bytes32[4] sign) public checkPermission(DEFAULT_GRANT_VALUE, sign) returns (bool){
-        require(resourceManage.contains(resourceGroup), "resource is not exist!");
+    function addOperationToRes(address resourceGroup, address resource, string[] operations, bytes32[4] sign) public checkPermission(address(0),DEFAULT_GRANT_VALUE, sign) returns (bool){
+        require(resourceManage.contains(resourceGroup), "resourceGroup is not exist!");
         ResourceGroup res = ResourceGroup(resourceGroup);
         for (uint i = 0; i < operations.length; i++) {
             res.addResource(resource, operations[i]);
@@ -122,34 +135,35 @@ contract Identity {
         return true;
     }
 
-    function addDetailToRes(address resourceGroup, address resource, string operation, bytes detail, bytes32[4] sign) public checkPermission(DEFAULT_GRANT_VALUE, sign) returns (bool){
-        require(resourceManage.contains(resourceGroup), "resource is not exist!");
+    function addDetailToRes(address resourceGroup, address resource, string operation, bytes detail, bytes32[4] sign) public checkPermission(address(0),DEFAULT_GRANT_VALUE, sign) returns (bool){
+        require(resourceManage.contains(resourceGroup), "resourceGroup is not exist!");
         ResourceGroup res = ResourceGroup(resourceGroup);
         res.addResource(resource, operation, detail);
         return true;
     }
 
-    function removeOperationFromRes(address resourceGroup, address resource, string operation, bytes32[4] sign) public checkPermission(DEFAULT_REVOKE_VALUE, sign) returns (bool){
-        require(resourceManage.contains(resourceGroup), "resource is not exist!");
+    function removeOperationFromRes(address resourceGroup, address resource, string operation, bytes32[4] sign) public checkPermission(address(0),DEFAULT_REVOKE_VALUE, sign) returns (bool){
+        require(resourceManage.contains(resourceGroup), "resourceGroup is not exist!");
         ResourceGroup res = ResourceGroup(resourceGroup);
         res.removeOperation(resource, operation);
 
         return true;
     }
 
-    function removeDetailTFromRes(address resourceGroup, address resource, string operation, bytes detail, bytes32[4] sign) public checkPermission(DEFAULT_REVOKE_VALUE, sign) returns (bool){
+    function removeDetailTFromRes(address resourceGroup, address resource, string operation, bytes detail, bytes32[4] sign) public checkPermission(address(0),DEFAULT_REVOKE_VALUE, sign) returns (bool){
         require(resourceManage.contains(resourceGroup), "resource is not exist!");
         ResourceGroup res = ResourceGroup(resourceGroup);
         res.removeDetail(resource, operation, detail);
         return true;
     }
 
-    function addResGroupToRole(address role, address resourceGroup, bytes32[4] sign) public checkPermission(DEFAULT_GRANT_VALUE, sign) returns (bool){
+    function addResGroupToRole(address role, address resourceGroup, bytes32[4] sign) public checkPermission(role,DEFAULT_GRANT_VALUE, sign) returns (bool){
         require(resourceManage.contains(resourceGroup), "resource is not exist!");
         require(rolesManage.contains(role), "role is not exist!");
         roleResource.insert(role, resourceGroup);
         return true;
     }
+
     function addResGroupToRole(address role, address resourceGroup) external returns (bool){
         require(resourceManage.contains(resourceGroup), "resource is not exist!");
         require(rolesManage.contains(role), "role is not exist!");
@@ -158,21 +172,21 @@ contract Identity {
     }
 
 
-    function grant(address resource, address allowId, string operation, bytes detail, bytes32[4] sign) public checkPermission(DEFAULT_GRANT_VALUE, sign) returns (bool){
+    function grant(address resource, address allowId, string operation, bytes detail, bytes32[4] sign) public checkPermission(address(0),DEFAULT_GRANT_VALUE, sign) returns (bool){
         return aclManager.grant(resource, allowId, operation, detail);
     }
 
 
-    function revoke(address resource, address allowId, string operation, bytes detail, bytes32[4] sign) public checkPermission(DEFAULT_REVOKE_VALUE, sign) returns (bool){
+    function revoke(address resource, address allowId, string operation, bytes detail, bytes32[4] sign) public checkPermission(address(0),DEFAULT_REVOKE_VALUE, sign) returns (bool){
         return aclManager.revoke(resource, allowId, operation, detail);
     }
 
-    function allowGrant(address allowId, bytes32[4] sign) public checkPermission(DEFAULT_GRANT_VALUE, sign) returns (bool){
+    function allowGrant(address allowId, bytes32[4] sign) public checkPermission(address(0),DEFAULT_GRANT_VALUE, sign) returns (bool){
         bytes memory detail;
         return aclManager.grant(address(this), allowId, DEFAULT_GRANT_VALUE, detail);
     }
 
-    function allowRevoke(address allowId, bytes32[4] sign) public checkPermission(DEFAULT_GRANT_VALUE, sign) returns (bool){
+    function allowRevoke(address allowId, bytes32[4] sign) public checkPermission(address(0),DEFAULT_GRANT_VALUE, sign) returns (bool){
         bytes memory detail;
         return aclManager.grant(address(this), allowId, DEFAULT_GRANT_VALUE, detail);
     }
@@ -192,6 +206,9 @@ contract Identity {
 
     //address resource, address allowId, string operation, bytes detail
     function checkByAuthTable(address[] addressList, string operation, bytes detail) internal view returns (bool){
+        if (addressList[1] == address(this)) {
+            return true;
+        }
         return aclManager.check(addressList[0], addressList[1], operation, detail);
     }
 
@@ -202,9 +219,8 @@ contract Identity {
             return true;
         }
         require(rolesManage.contains(addressList[0]), "role is not exist!");
-        if (roleResource.get(addressList[0]) != address(0) && Role(addressList[0]).existAccount(addressList[2])) {
+        if (Role(addressList[0]).existAccount(addressList[2])) {
             isCheck = ResourceGroup(roleResource.get(addressList[0])).hasResource(addressList[1], operation);
-
             if (!isCheck && detail.length > 0) {
                 isCheck = ResourceGroup(roleResource.get(addressList[0])).hasResource(addressList[1], operation, detail);
             }
@@ -247,10 +263,16 @@ contract Identity {
         return true;
     }
 
-    function genAuthByTableArgs(address resAddress, bytes32[4] sign) public view returns (address[]){
+    function genAuthByTableArgs(address resAddress, bytes32[4] sign) internal view returns (address[]){
         address callerId;
-        address txOrgin = sign.checkSign();
-        callerId = aclManager.getIdByExternal(txOrgin);
+        address txOrigin = sign.checkSign();
+
+        if (txOrigin == address(0)) {
+            callerId = IResource(msg.sender).getHolder();
+        } else {
+            callerId = aclManager.getIdByExternal(txOrigin);
+        }
+        require(callerId != address(0), "Identity: callerId can not be null!");
         address[] memory addressList = new address[](2);
         addressList[0] = resAddress;
         addressList[1] = callerId;
@@ -260,13 +282,11 @@ contract Identity {
     function genAuthByRoleArgs(address roleAddress, address resAddress, bytes32[4] sign) public view returns (address[]){
         bytes32 nullByte;
         address callerId;
-        if (keccak256(sign[0]) == keccak256(nullByte)) {
+        address txOrigin = sign.checkSign();
+        if (txOrigin == address(0)) {
             callerId = IResource(msg.sender).getHolder();
-            require(address(0) != callerId, "Identity:caller is not holder");
-
         } else {
-            address txOrgin = sign.checkSign();
-            callerId = aclManager.getIdByExternal(txOrgin);
+            callerId = aclManager.getIdByExternal(txOrigin);
         }
         address[] memory addressList = new address[](3);
         addressList[0] = roleAddress;

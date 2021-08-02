@@ -24,11 +24,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.webank.openledger.contractsbak.Account;
+import com.webank.openledger.contracts.Account;
 import com.webank.openledger.contractsbak.AuthCenter;
 import com.webank.openledger.contracts.Organization;
 import com.webank.openledger.core.AccountImplTest;
 import com.webank.openledger.core.Blockchain;
+import com.webank.openledger.core.account.AccountService;
 import com.webank.openledger.core.asset.AccountHolderService;
 import com.webank.openledger.core.asset.BaseCustodyService;
 import com.webank.openledger.core.asset.nonfungible.entity.IssueNoteResult;
@@ -42,6 +43,7 @@ import com.webank.openledger.core.auth.AuthCenterService;
 import com.webank.openledger.core.common.ValueModel;
 import com.webank.openledger.core.constant.ErrorCode;
 import com.webank.openledger.core.exception.OpenLedgerBaseException;
+import com.webank.openledger.core.org.OrganizationService;
 import com.webank.openledger.core.response.ResponseData;
 import com.webank.openledger.utils.OpenLedgerUtils;
 
@@ -76,11 +78,11 @@ public class NonFungibleAssetServiceTest {
     private AuthCenterService<AuthCenter> authCenterSDK;
     private BaseCustodyService<Organization> custody;
     private AccountHolderService<Account> holder;
-    private String custodyContractAddress = "0x9857ea5d68fb1a7888d24c27e66f65b0cbded57b";
-    private String holderContractAddress = "0x9857ea5d68fb1a7888d24c27e66f65b0cbded57b";
-    private String assetAddress = "";
-    private String USER_ACCOUNT1 = "";
-    private String USER_ACCOUNT2 = "";
+    private String custodyContractAddress = "0xc638ccb69e8f0c176c0b04c347d5b0d842ed34e6";
+    private String holderContractAddress = "0xc638ccb69e8f0c176c0b04c347d5b0d842ed34e6";
+    private String assetAddress = "0xd09032fcceda75e54b5bae44302597508b625e2c";
+    private String USER_ACCOUNT1 = "0x8445a5599fb313522d3355be6f1974c9b6b5bf6a";
+    private String USER_ACCOUNT2 = "0x8445a5599fb313522d3355be6f1974c9b6b5bf6a";
 
     @Before
     public void init() {
@@ -109,6 +111,13 @@ public class NonFungibleAssetServiceTest {
             this.nonFungibleAssetService = new NonFungibleAssetService(blockchain, contractAddress);
             this.authCenterSDK = new AuthCenterService<>(blockchain, AUTH_ADDRESS);
         }
+
+        if (StringUtils.isNotBlank(custodyContractAddress)) {
+            this.custody = new OrganizationService(blockchain, custodyContractAddress, assetAddress);
+        }
+        if (StringUtils.isNotBlank(holderContractAddress)) {
+            this.holder = new AccountService(blockchain, custodyContractAddress, assetAddress);
+        }
     }
 
     @Test
@@ -126,10 +135,10 @@ public class NonFungibleAssetServiceTest {
     public void testOpenAccount() throws OpenLedgerBaseException {
 //        BigInteger nonce = authCenterSDK.getNonceFromAccount(operator.getAddress()).getResult();
         BigInteger nonce = new BigInteger("1");
-        byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(operator.getAddress()), OpenLedgerUtils.getBytes32(nonce.toByteArray()));
+        byte[] args = OpenLedgerUtils.concatByte(OpenLedgerUtils.convertStringToAddressByte(user.getAddress()), OpenLedgerUtils.getBytes32(nonce.toByteArray()));
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
-        ResponseData<Boolean> response = custody.openAccount(operator.getAddress(), message, sign);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(user, message);
+        ResponseData<Boolean> response = custody.openAccount(USER_ACCOUNT1, message, sign);
         log.info(response.getErrMsg());
         assertTrue(response.getResult());
     }
@@ -156,14 +165,12 @@ public class NonFungibleAssetServiceTest {
 //        BigInteger nonce = authCenterSDK.getNonceFromAccount(admin.getAddress()).getResult();
         BigInteger nonce = new BigInteger("1");
         byte[] message = NonFungibleAssetService.computeIssueMsg(issueOption, nonce);
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(user, message);
         ResponseData<List<IssueNoteResult>> response = custody.issue(issueOption, message, sign);
         log.info(response.getErrMsg());
         log.info(response.getResult().toString());
 
         assertTrue(response.getErrorCode().equals(ErrorCode.SUCCESS.getCode()));
-        log.info("totalNoteSize:" + nonFungibleAssetService.getAsset().getTotalNoteSize());
-        log.info("totalNoteSize:" + nonFungibleAssetService.getAsset().getAccountNoteSize(admin.getAddress(), OpenLedgerUtils.convertSignToByte(message, sign)));
     }
 
     @Test
@@ -172,17 +179,17 @@ public class NonFungibleAssetServiceTest {
 //        BigInteger nonce = authCenterSDK.getNonceFromAccount(admin.getAddress()).getResult();
         BigInteger nonce = new BigInteger("1");
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(OpenLedgerUtils.getBytes32(nonce.toByteArray()));
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(user, message);
 
-        Note response = custody.getNoteDetail(new BigInteger(noteNo), operator.getAddress(), message, sign);
+        Note response = custody.getNoteDetail(new BigInteger(noteNo),message, sign);
         log.info(response.toString());
         assertEquals(new BigInteger(noteNo).intValue(), response.getNoteNo().intValue());
     }
 
     @Test
     public void testTransfer() throws OpenLedgerBaseException, UnsupportedEncodingException {
-        BigInteger noteNo1 = new BigInteger("20220004");
-        BigInteger noteNo2 = new BigInteger("20220005");
+        BigInteger noteNo1 = new BigInteger("2021004");
+        BigInteger noteNo2 = new BigInteger("2021005");
         List<BigInteger> noteNos = new ArrayList<>();
         noteNos.add(noteNo1);
         noteNos.add(noteNo2);
@@ -204,29 +211,29 @@ public class NonFungibleAssetServiceTest {
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(OpenLedgerUtils.getBytes32(nonce.toByteArray()));
         ECDSASignatureResult sign = OpenLedgerUtils.sign(user, message);
 
-        List<BigInteger> response = holder.getAccountNotes(user.getAddress(), BigInteger.valueOf(0), BigInteger.valueOf(10), message, sign);
+        List<BigInteger> response = custody.getAccountNotes(USER_ACCOUNT1, BigInteger.valueOf(0), BigInteger.valueOf(10), message, sign);
         log.info(response.toString());
     }
 
     @Test
     public void testUpdateNoteNo() throws OpenLedgerBaseException {
-        BigInteger noteNo1 = new BigInteger("20210004");
+        BigInteger noteNo1 = new BigInteger("2021004");
         BigInteger noteNo2 = new BigInteger("30210023");
 //        BigInteger nonce = authCenterSDK.getNonceFromAccount(operator.getAddress()).getResult();
         BigInteger nonce = new BigInteger("1");
 
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(OpenLedgerUtils.concatByte(OpenLedgerUtils.getBytes32(noteNo1.toByteArray()), OpenLedgerUtils.getBytes32(noteNo2.toByteArray()), OpenLedgerUtils.convertStringToAddressByte(admin.getAddress()), OpenLedgerUtils.getBytes32(nonce.toByteArray())));
 
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(user, message);
 
-        ResponseData<Boolean> response = custody.updateNoteNo(noteNo1, noteNo2, operator.getAddress(), message, sign);
+        ResponseData<Boolean> response = custody.updateNoteNo(noteNo1, noteNo2, message, sign);
         log.info(response.getErrMsg());
         assertTrue(response.getResult());
     }
 
     @Test
     public void testUpdateNoteItems() throws OpenLedgerBaseException {
-        BigInteger noteNo = new BigInteger("20210005");
+        BigInteger noteNo = new BigInteger("2021005");
         HashMap<String, Object> items = new HashMap<>();
         items.put("hello", "world");
 //        BigInteger nonce = authCenterSDK.getNonceFromAccount(admin.getAddress()).getResult();
@@ -242,7 +249,7 @@ public class NonFungibleAssetServiceTest {
         }
 
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(OpenLedgerUtils.concatByte(args, OpenLedgerUtils.convertStringToAddressByte(operator.getAddress()), OpenLedgerUtils.getBytes32(nonce.toByteArray())));
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(user, message);
         ResponseData<Map<String, Object>> response = custody.updateNoteProperties(noteNo, items, message, sign);
         log.info(response.getErrMsg());
         log.info(response.getResult().toString());
@@ -276,7 +283,7 @@ public class NonFungibleAssetServiceTest {
                 OpenLedgerUtils.getBytes32(nonce.toByteArray())
         );
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(args);
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(user, message);
 
         ResponseData<Boolean> responseData = custody.updateExpirationDate(batchNo, expireDate, operator.getAddress(), message, sign);
         log.info(responseData.getErrMsg());
@@ -288,7 +295,7 @@ public class NonFungibleAssetServiceTest {
                 OpenLedgerUtils.getBytes32(nonce.toByteArray())
         );
         message = OpenLedgerUtils.computeKeccak256Hash(args);
-        sign = OpenLedgerUtils.sign(operator, message);
+        sign = OpenLedgerUtils.sign(user, message);
         responseData = custody.updateEffectiveDate(batchNo, effectiveDate, operator.getAddress(), message, sign);
         log.info(responseData.getErrMsg());
         assertTrue(responseData.getResult());
@@ -298,12 +305,12 @@ public class NonFungibleAssetServiceTest {
     public void testFreezeNote() throws OpenLedgerBaseException {
         BigInteger nonce = new BigInteger("1");
 //        BigInteger nonce = authCenterSDK.getNonceFromAccount(operator.getAddress()).getResult();
-        BigInteger noteNo = new BigInteger("20210001");
+        BigInteger noteNo = new BigInteger("2021001");
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(OpenLedgerUtils.concatByte(OpenLedgerUtils.getBytes32(noteNo.toByteArray()),
                 OpenLedgerUtils.convertStringToAddressByte(operator.getAddress()),
                 OpenLedgerUtils.getBytes32(nonce.toByteArray())
         ));
-        ECDSASignatureResult sign = OpenLedgerUtils.sign(operator, message);
+        ECDSASignatureResult sign = OpenLedgerUtils.sign(user, message);
 
         ResponseData<Boolean> response = custody.freezeNote(noteNo, message, sign);
         log.info(response.getErrMsg());
@@ -315,7 +322,7 @@ public class NonFungibleAssetServiceTest {
     public void testUnfreezeNote() throws OpenLedgerBaseException {
         BigInteger nonce = new BigInteger("1");
 //        BigInteger nonce = authCenterSDK.getNonceFromAccount(admin.getAddress()).getResult();
-        BigInteger noteNo = new BigInteger("20210004");
+        BigInteger noteNo = new BigInteger("2021004");
         byte[] message = OpenLedgerUtils.computeKeccak256Hash(OpenLedgerUtils.concatByte(OpenLedgerUtils.getBytes32(noteNo.toByteArray()),
                 OpenLedgerUtils.convertStringToAddressByte(operator.getAddress()),
                 OpenLedgerUtils.getBytes32(nonce.toByteArray())

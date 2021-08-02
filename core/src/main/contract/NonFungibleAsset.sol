@@ -93,7 +93,7 @@ contract NonFungibleAsset is Identity {
     }
 
 
-    function getNoteDetail(uint256 noteNo, address account, bytes32[4] sign) public constant returns (address[], uint256[], uint[], uint8){
+    function getNoteDetail(uint256 noteNo, address account, bytes32[4] sign) public view returns (address[], uint256[], uint[], uint8){
         checkGetAuth(noteNo, account, "getNoteDetail", sign);
         address[] memory addressList = new address[](2);
         uint256[] memory uint256List = new  uint256[](2);

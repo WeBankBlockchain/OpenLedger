@@ -31,10 +31,12 @@ contract BaseOrgAdmin is BaseResourceWithRole {
     string constant roleAdmin = "ADMIN";  //本机构管理员
     string constant roleMember = "MEMBER"; //本机构成员，不包括管理员
     string[]  DEFAULT_ADMIN_OPERATION = ["grant", "revoke"];
-    string[]  DEFAULT_MEM_OPERATION = ["registerAsset", "upgradeAsset", "setPrice", "deposit", "setRate", "getHolders",
-    "openAccount", "addBook", "deposit", "withdrawl", "getTotalBalance", "queryBook",
-    "issue", "getNoteDetail", "getAccountNoteSize", "updateNoteNo", "updateNoteProperties", "getNoteProperties", "updateNoteBatch",
-    "freezeNote", "unfreezeNote", "getTotalNoteSize", "getTotalNoteSize", "getTearNotes", "enableBatch", "getBalance", "cancel", "freeze", "unfreeze", "createAccount"];
+    //string[]  DEFAULT_MEM_OPERATION =["test"];
+    string[]  DEFAULT_MEM_OPERATION = ["registerAsset", "upgradeAsset", "setPrice", "setRate", "getHolders",
+    "openAccount", "addBook", "deposit", "withdrawal", "getTotalBalance", "queryBook",
+    "issue", "getNoteDetail", "getAccountNoteSize", "updateNoteNo", "updateNoteProperties", "getNoteProperties",
+    "freezeNote", "unfreezeNote", "getTotalNoteSize", "getTearNotes", "updateNoteBatch", "getBalance",
+    "cancel", "freeze", "unfreeze", "createAccount","getAccountNotes"];
 
     address[] accountList;
     IProject _project;
@@ -56,55 +58,54 @@ contract BaseOrgAdmin is BaseResourceWithRole {
 
     function initRoles(bytes32[4] sign) public onlyProject returns (bool){
         require(createRole(roleAdmin, sign), "createRole admin fail!");
-//        require(createRole(roleMember, sign), "createRole member fail!");
+        require(createRole(roleMember, sign), "createRole admin fail!");
+
 //        require(addOperationToResGroup(roleAdmin, DEFAULT_ADMIN_OPERATION, sign), "addOperationToResGroup for admin fail");
-//        require(addOperationToResGroup(roleMember, DEFAULT_MEM_OPERATION, sign), "addOperationToResGroup for member fail");
+        require(addOperationToResGroup(roleMember, DEFAULT_MEM_OPERATION, sign), "addOperationToResGroup for member fail");
+        IdInterface(holder).addOperationToRes(resourceGroup[roleAdmin], holder, DEFAULT_ADMIN_OPERATION, sign);
         return true;
     }
 
-    function initRolesOperation(bytes32[4] sign) public onlyProject returns (bool){
-        require(addOperationToResGroup(roleAdmin, DEFAULT_ADMIN_OPERATION, sign), "addOperationToResGroup for admin fail");
-        require(addOperationToResGroup(roleMember, DEFAULT_MEM_OPERATION, sign), "addOperationToResGroup for member fail");
-        return true;
-    }
+
     //新增一个管理员
     ///[param[in] another, 新增管理员地址
-    function registerAdmin(address adminExternal, bytes32[4] sign) external returns (bool){
+    function registerAdmin(address adminExternal, bytes32[4] sign) public returns (bool){
+        require(address(0) != adminExternal, "BaseOrgAdmin:adminExternal can not be null!");
         address adminId = IAclManager(_project.getAclManager()).createId(adminExternal);
         require(address(0) != adminId, "BaseOrgAdmin:createId failed!");
-        grantId(roleAdmin, adminExternal, sign);
+        require(grantId(roleAdmin, adminExternal, sign), "grantId for admin fail!");
         return true;
     }
 
     //新增一个组织成员
     ///[param[in] member, 新增组织成员地址
-    function registerMember(address memberExternal, bytes32[4] sign) external returns (bool){
+    function registerMember(address memberExternal, bytes32[4] sign) public returns (bool){
         address memId = IAclManager(_project.getAclManager()).createId(memberExternal);
         require(address(0) != memId, "BaseOrgAdmin:createId failed!");
-        grantId(roleMember, memberExternal, sign);
+        grantId(roleMember, memberExternal,roles[roleAdmin], sign);
         return true;
     }
 
     //移除一个管理员
     ///[param[in] another, 目标管理员地址
-    function unregisterAdmin(address adminExternal, bytes32[4] sign) external returns (bool){
+    function unregisterAdmin(address adminExternal, bytes32[4] sign) public returns (bool){
         revokeId(roleAdmin, adminExternal, sign);
         return true;
     }
 
     //移除一个组织成员
     ///[param[in] member, 目标成员地址
-    function unregisterMember(address memberExternal, bytes32[4] sign) external returns (bool){
+    function unregisterMember(address memberExternal, bytes32[4] sign) public returns (bool){
         revokeId(roleMember, memberExternal, sign);
         return true;
     }
 
 
-    function isAdmin(bytes32[4] sign, string operation, bytes detail) external view returns (bool){
+    function isAdmin(bytes32[4] sign, string operation, bytes detail) public view returns (bool){
         return checkAuth(sign, roleAdmin, operation, detail);
     }
 
-    function isMember(bytes32[4] sign, string operation, bytes detail) external view returns (bool){
+    function isMember(bytes32[4] sign, string operation, bytes detail) public view returns (bool){
         return checkAuth(sign, roleMember, operation, detail);
     }
 

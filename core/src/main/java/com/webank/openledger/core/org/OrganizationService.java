@@ -19,6 +19,7 @@ import java.util.List;
 
 import com.webank.openledger.contracts.Organization;
 import com.webank.openledger.core.Blockchain;
+import com.webank.openledger.core.asset.AccountHolderService;
 import com.webank.openledger.core.asset.BaseCustodyService;
 import com.webank.openledger.core.common.BaseHolder;
 import com.webank.openledger.core.response.DataToolUtils;
@@ -51,7 +52,7 @@ public class OrganizationService extends BaseCustodyService<Organization> {
      */
     protected Organization contractIns;
 
-    private BaseHolder accountHolder;
+    private AccountHolderService accountHolder;
 
     /**
      * initializes the contract object
@@ -75,8 +76,8 @@ public class OrganizationService extends BaseCustodyService<Organization> {
      */
     public OrganizationService(Blockchain blockchain, String contractAddress,String assetAddress) {
         super(blockchain, contractAddress,Organization.class);
-        accountHolder = blockchain.getLedger(Blockchain.DEFAULT_LEDGERID).getContract(contractAddress, assetAddress,Organization.class);
-
+        this.setAssetAddress(assetAddress);
+        accountHolder = new AccountHolderService(blockchain,contractAddress,assetAddress,Organization.class);
     }
     /**
      * get contract object
